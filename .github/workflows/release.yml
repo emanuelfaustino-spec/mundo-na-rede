@@ -1,0 +1,30 @@
+name: Gerar aplicativos
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.x"
+      - run: go test ./...
+      - name: Compilar Windows sem console
+        run: GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -ldflags='-H=windowsgui' -o dist/Mundo-na-Rede.exe .
+      - name: Compilar Linux
+        run: GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o dist/mundo-na-rede-linux-amd64 .
+      - name: Compilar Android experimental
+        run: GOOS=android GOARCH=arm64 CGO_ENABLED=0 go build -o dist/mundo-na-rede-android-arm64 .
+      - uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          generate_release_notes: true
+          files: dist/*

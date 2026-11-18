@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="pt-BR" translate="no">
+<head><meta charset="utf-8"><meta name="google" content="notranslate"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Mundo na Rede</title><link rel="icon" type="image/png" href="icon.png"><link rel="stylesheet" href="style.css"><script src="language.js" defer></script><script src="app.js" defer></script></head>
+<body>
+<header><div class="brand"><span class="brand-orbit">◉</span><div><strong>Mundo na Rede</strong><small>seu universo, sua rede</small></div></div><div class="header-actions"><span id="device"></span><label class="sr-only" for="language">Idioma</label><select id="language"><option value="pt">Português</option><option value="en">English</option></select><button id="theme" aria-label="Alternar tema">◐</button><button id="account-open" class="account-button">◌ Conta</button></div></header>
+<main>
+<aside><div class="section-title"><h2>Meus servidores</h2><button id="new" class="icon" aria-label="Novo servidor">+</button></div><div id="servers"></div></aside>
+<div class="workspace">
+<p id="notice" role="status" hidden></p>
+<section id="create" class="card" hidden>
+<h1>Novo servidor</h1>
+<p>O mundo roda neste dispositivo. Os jogadores entram pelo Minecraft.</p>
+<form id="create-form">
+<label>Nome<input name="name" maxlength="40" required placeholder="Meu mundo"></label>
+<div class="grid">
+<label>Quem vai jogar?<select name="engine"><option value="bedrock">Bedrock · celular e Minecraft para Windows</option><option value="pnx">Bedrock · hospedar no Android</option><option value="java">Java · Minecraft Java Edition</option><option value="both">Java e Bedrock · jogam juntos</option></select></label>
+<label>Modo<select name="mode"><option value="survival">Sobrevivência</option><option value="creative">Criativo</option></select></label>
+<label>Porta<input name="port" type="number" min="1024" max="65534" value="19132" required></label>
+<label>Limite de jogadores<input name="players" type="number" min="1" max="100" value="5" required></label>
+<p id="create-capacity"></p>
+<label id="memory-label" hidden>Memória máxima da JVM (MiB)<input name="memory" type="number" min="512" max="32768" value="2048" required></label>
+</div>
+<fieldset id="create-bedrock"><legend>Personalize seu mundo Bedrock</legend><p>Alcance maior exige mais do aparelho. A seed só afeta mundos novos.</p><label>Seed (opcional)<input name="seed" maxlength="64"><button type="button" id="random-seed">Gerar seed</button></label>
+<label>Dificuldade<select name="difficulty"><option value="">Padrão</option><option value="peaceful">Pacífico</option><option value="easy">Fácil</option><option value="normal">Normal</option><option value="hard">Difícil</option></select></label>
+<label>Distâncias do mundo<select name="preset"><option value="">Padrão do motor</option><option value="light">Leve · visão 10 / simulação 4 chunks</option><option value="balanced">Equilibrado · visão 16 / simulação 4 chunks</option><option value="reach">Alcance maior · visão 24 / simulação 6 chunks</option></select></label><label>Add-on opcional antes de iniciar<input id="initial-addon" type="file" accept=".mcpack,.mcaddon,.zip"></label></fieldset><p id="engine-tip"></p>
+<button class="primary">Criar servidor</button>
+</form>
+</section>
+<section id="panel" hidden>
+<div class="card hero">
+<div class="section-title"><div><p id="engine-name" class="eyebrow"></p><img id="world-cover" alt="" hidden><h1 id="server-name"></h1></div><span id="state" class="pill"></span></div>
+<div class="connection"><div><small>Endereço no Minecraft</small><strong id="address"></strong></div><button id="copy">Copiar</button><button id="invite-open">Convide amigos</button></div>
+<div id="server-summary" class="actions"></div><p id="access-warning" role="status" hidden></p>
+<nav id="world-tabs" aria-label="Seções do servidor"><button data-tab="all"><span>◈</span>Visão geral</button><button data-tab="people"><span>♙</span>Jogadores</button><button data-tab="world"><span>✦</span>Mundo</button><button data-tab="backup"><span>▣</span>Cofre</button><button data-tab="details"><span>◌</span>Controle</button></nav><p id="pause-info"></p><div id="public-addresses" hidden></div><div class="actions control-deck"><button class="primary" id="start">▶ Iniciar mundo</button><button id="access-edit" hidden>Quem pode entrar?</button><button id="stop">■ Parar</button><button id="restart">↻ Reiniciar</button><button id="force" hidden>Forçar parada</button><span id="uptime"></span></div>
+</div>
+<div class="card" data-section="people">
+<h2>Jogadores e acesso</h2><p id="player-summary"></p><p id="people-hint">Gerencie jogadores recentes, permitidos e banidos. Banimentos são aplicados mesmo após reiniciar o servidor.</p><form id="player-add-form" class="command"><input id="player-add-name" maxlength="32" placeholder="Gamertag do jogador" required><select id="player-add-action"><option value="allow">Permitir</option><option value="ban">Banir</option></select><button>Adicionar</button></form><label>Buscar jogador<input id="people-search" type="search"></label><div id="players-online"></div>
+<details id="console-details"><summary>Ver detalhes e comandos</summary>
+<label>Buscar nos logs<input id="log-search" type="search" placeholder="Digite para filtrar"></label><pre id="logs" tabindex="0" aria-label="Logs do servidor">Os logs aparecem aqui.</pre>
+<div class="actions"><button class="shortcut" data-command="list">Listar jogadores</button><button id="allowlist">Adicionar à lista de permitidos</button><button id="kick">Expulsar</button><button id="ban">Banir</button><button id="operator">Dar permissão de operador</button></div>
+<form id="console-form" class="command"><input id="command" aria-label="Comando do servidor" placeholder="Ex.: say Olá, pessoal!" required maxlength="240"><button>Enviar</button></form>
+</details></div>
+<div class="card" data-section="backup">
+<h2>Motor, mundo e backups</h2>
+<p id="install-tip"></p>
+<div class="actions"><a id="download-engine" target="_blank" rel="noopener noreferrer">Obter motor</a><button id="official">Instalar BDS oficial</button><button id="mixed-install">Instalar Java + Bedrock</button><button data-upload="install" id="manual-install">Importar motor</button><button id="eula" hidden>Aceitar EULA Java</button><button data-upload="world" id="world">Importar mundo</button><button id="backup">Exportar backup</button><button id="restore-open">Restaurar backup</button></div>
+<details id="backup-history"><summary>Histórico de backups locais</summary><div id="backup-history-list"></div></details><p>Para instalar, restaurar ou importar arquivos, pare o servidor primeiro. Use arquivos de origem confiável.</p>
+</div>
+<div class="card" data-section="world">
+<div class="section-title"><h2>Painel do mundo</h2><button id="world-edit">Ajustes do mundo e da internet</button></div>
+<p>Adicione extensões a um mundo novo ou existente. Pare o servidor antes de instalar.</p>
+<label>Escolher capa do mundo<input id="world-cover-input" type="file" accept="image/png,image/jpeg"></label><p>A capa aparece apenas neste app.</p><div id="extension-list"></div><details id="internal-packs" hidden><summary>Packs internos · diagnóstico</summary><div id="internal-list"></div></details>
+<details id="catalog"><summary>Buscar mods e plugins no Modrinth</summary>
+<form id="catalog-form" class="command"><label class="sr-only" for="catalog-query">Buscar extensões</label><input id="catalog-query" placeholder="Buscar extensões" maxlength="140"><select id="catalog-kind" aria-label="Tipo de extensão"><option value="mod">Mod Java</option><option value="plugin">Plugin do servidor</option></select><button>Buscar</button></form>
+<p>Confira a versão e o carregador na página da extensão antes de baixar. Use Importar extensão para instalar.</p>
+<div id="catalog-results" aria-live="polite"></div>
+</details>
+<div class="actions"><button id="config-edit">Editar configuração</button><button data-upload="config" id="config-upload">Importar configuração</button><label class="inline">Pasta<select id="addon-folder"></select></label><button data-upload="addon">Importar extensão</button></div>
+<p id="addon-tip"></p>
+</div>
+<div class="card" data-section="details">
+<h2>Desempenho e tarefas</h2><p id="world-metrics"></p><p id="performance-status"></p><canvas id="cpu-chart" width="360" height="64" aria-label="Histórico de CPU do servidor"></canvas><div class="actions"><button id="economy-mode">Aplicar modo econômico</button></div><p>O modo econômico usa distância leve (visão 10 / simulação 4) na próxima inicialização. Ele não altera o mundo nem remove add-ons.</p><fieldset id="pregenerate-plan"><legend>Planejar pré-geração do mundo</legend><p>Escolha o alcance com o deslizador. A estimativa ajuda a decidir o raio antes de usar uma ferramenta compatível.</p><label for="pregenerate-radius">Raio além do spawn <output id="pregenerate-radius-value">500 blocos</output></label><input id="pregenerate-radius" class="range-control" type="range" min="100" max="2000" step="50" value="500"><div class="range-labels"><span>100</span><span>2.000 blocos</span></div><p id="pregenerate-estimate"></p></fieldset><h2>Tarefas programadas</h2>
+<p>Os comandos se repetem enquanto o servidor está online.</p>
+<form id="schedule-form"><div class="grid">
+<label>Comando<input name="command" placeholder="say O servidor está online" required maxlength="240"></label>
+<label>Intervalo (minutos)<input name="minutes" type="number" min="1" max="10080" value="30" required></label>
+</div><button>Adicionar tarefa</button></form>
+<div id="schedules"></div>
+</div>
+<small class="footer">Aplicativo independente para servidores Minecraft. O mundo fica no aparelho anfitrião.</small>
+</section>
+</div>
+</main>
+<button id="guide-open" class="guide-button"><span aria-hidden="true">?</span> Guia</button>
+<dialog id="guide">
+<div class="section-title"><h2>Guia do aplicativo</h2><button data-close="guide">Fechar</button></div>
+<details open><summary>Criar e iniciar</summary><p>Crie um servidor e escolha o motor. No PC, escolha Bedrock oficial para jogar com celulares e Windows. No Android, a edição experimental usa Termux e PowerNukkitX. Importe ou instale o motor recomendado, depois clique em Iniciar.</p></details>
+<details><summary>Entrar no mundo</summary><p>Conecte os aparelhos à mesma rede. No Minecraft Bedrock, abra Jogar, Servidores e Adicionar servidor. Cole o IP e a porta mostrados no painel em seus respectivos campos. Use a mesma versão compatível do jogo.</p></details>
+<details><summary>Trazer um mundo existente</summary><p>Exporte o mundo no Minecraft e selecione Importar mundo em um perfil Bedrock oficial com o motor instalado e o servidor parado. Use um .mcworld ou ZIP com level.dat e db/ na raiz.</p></details>
+<details><summary>Administrar jogadores e desempenho</summary><p>Use Listar jogadores no console. Para expulsar ou permitir alguém, escolha o atalho, complete o nome e envie o comando. Comece com poucos jogadores e aumente o limite depois de testar o desempenho do aparelho.</p></details>
+<details><summary>Add-ons, mods e plugins</summary><p>Add-ons de Bedrock mudam recursos ou comportamento. Mods de Java precisam do carregador e da versão certos. Plugins são extensões do servidor e precisam de um motor compatível. O modo Java e Bedrock usa Paper e plugins Paper, e os jogadores compartilham um mundo Java.</p></details>
+<details><summary>Pausa quando o mundo fica vazio</summary><p>Nos servidores Java compatíveis, o mundo pausa depois de 15 minutos vazio e volta quando alguém entra. O servidor continua aceitando conexões. A pausa reduz o trabalho do processador e mantém o mundo na memória.</p></details>
+<details><summary>Salvar e recuperar</summary><p>Use Exportar backup com o servidor parado para guardar um ZIP. Se o Google Drive estiver disponível, conecte a conta para salvar automaticamente após paradas normais. Para recuperar em outro aparelho, baixe a cópia do Drive e use Restaurar backup num perfil do mesmo motor e plataforma.</p></details>
+<details><summary>Quando a conexão falha</summary><p>Verifique o status, o IP, a porta e a versão de Minecraft. No Windows, permita o servidor na rede privada quando o firewall solicitar. Redes de convidados podem impedir a comunicação entre aparelhos. O aparelho anfitrião precisa continuar ligado.</p></details>
+</dialog>
+<dialog id="account">
+<div class="section-title"><h2>Conta e backups</h2><button data-close="account">Fechar</button></div>
+<p>Conecte o Google Drive para salvar uma cópia após cada parada normal do servidor. As cópias incluem os arquivos do servidor e ficam privadas no seu Drive.</p>
+<p id="account-state" role="status"></p>
+<p id="account-name"></p>
+<details id="account-setup" hidden><summary>Configurar Google Drive neste aplicativo</summary><p>Para proteger sua conta, o Google exige um cliente OAuth próprio. No Google Cloud, crie um cliente do tipo <strong>Aplicativo para computador</strong>, ative a Drive API e cole os dois campos abaixo. Eles ficam somente neste dispositivo.</p><form id="account-setup-form"><label>ID do cliente<input id="google-client-id" autocomplete="off" placeholder="…apps.googleusercontent.com" required></label><label>Segredo do cliente<input id="google-client-secret" type="password" autocomplete="new-password" required></label><button class="primary">Salvar e conectar Google</button></form></details>
+<p id="account-bridge" hidden>No Termux, configure o Drive no rclone e vincule a pasta de backups aqui.</p>
+<div id="cloud-backups"></div>
+<div class="actions"><button id="account-connect" class="primary">Conectar Google</button><button id="account-pair" hidden>Vincular pasta do Drive</button><button id="account-disconnect" hidden>Desconectar</button><a href="https://drive.google.com/drive/search?q=MundoNaRede" target="_blank" rel="noopener noreferrer">Localizar backups no Drive</a></div>
+<p><a href="https://accounts.google.com/signin/recovery" target="_blank" rel="noopener noreferrer">Recuperar minha conta Google</a></p>
+</dialog>
+<dialog id="world-settings">
+<div class="section-title"><h2>Ajustes do mundo e da internet</h2><button data-close="world-settings">Fechar</button></div>
+<form id="world-settings-form"><div class="grid">
+<label>Nome<input name="name" maxlength="40" required></label>
+<label>Modo<select name="mode"><option value="survival">Sobrevivência</option><option value="creative">Criativo</option></select></label>
+<label>Porta<input name="port" type="number" min="1024" max="65534" required></label>
+<label>Limite de jogadores<input name="players" type="number" min="1" max="100" required></label>
+<label id="world-memory">Memória máxima da JVM (MiB)<input name="memory" type="number" min="512" max="32768" required></label>
+</div>
+<fieldset id="settings-bedrock"><legend>Opções Bedrock</legend><label>Seed (opcional)<input name="seed" maxlength="64"></label>
+<label>Dificuldade<select name="difficulty"><option value="">Padrão</option><option value="peaceful">Pacífico</option><option value="easy">Fácil</option><option value="normal">Normal</option><option value="hard">Difícil</option></select></label>
+<label>Distâncias do mundo<select name="preset"><option value="">Padrão do motor</option><option value="light">Leve · visão 10 / simulação 4 chunks</option><option value="balanced">Equilibrado · visão 16 / simulação 4 chunks</option><option value="reach">Alcance maior · visão 24 / simulação 6 chunks</option></select></label></fieldset><p id="world-capacity"></p>
+<p>O limite de jogadores é ajustável. Teste com mais jogadores aos poucos. A velocidade de envio da sua internet, a distância e as extensões afetam a partida.</p>
+<details><summary>Amigos fora da sua rede</summary>
+<p>O seu aparelho continua hospedando. Se seu provedor oferece IP público, encaminhe apenas as portas do jogo no roteador. Em redes com CGNAT, use um túnel compatível ou peça um IP público ao provedor para verificar a disponibilidade e o custo.</p>
+<p>No Playit, o túnel gratuito depende do tipo de servidor. Confirme o transporte do seu Bedrock antes de escolher. O endereço abaixo serve para compartilhar um acesso que você já configurou.</p>
+<p><a href="https://playit.gg/download" target="_blank" rel="noopener noreferrer">Ver opções de túnel</a></p>
+<label id="address-java">Endereço público Java<input name="publicJava" placeholder="jogar.exemplo.com:25565" maxlength="260"></label>
+<label id="address-bedrock">Endereço público Bedrock<input name="publicBedrock" placeholder="jogar.exemplo.com:19132" maxlength="260"></label>
+</details>
+<p id="world-settings-status" role="status"></p>
+<button class="primary">Salvar</button>
+</form>
+</dialog>
+<dialog id="invite-dialog"><div class="section-title"><h2>Convide amigos</h2><button data-close="invite-dialog">Fechar</button></div><p>No Minecraft, abra Jogar, Servidores e Adicionar servidor. Use o IP e a porta abaixo na mesma rede.</p><p id="invite-address"></p><img id="invite-image" alt="QR Code com endereço do servidor" hidden><p>O QR Code mostra o endereço para copiar.</p></dialog>
+<dialog id="prepare-dialog">
+<div class="section-title"><h2>Vamos preparar seu servidor</h2><button data-close="prepare-dialog">Fechar</button></div>
+<form id="prepare-form">
+<label>Quem pode entrar?<select id="access-mode"><option value="lan">Qualquer pessoa que alcance o endereço</option><option value="approved">Somente jogadores aprovados</option></select></label>
+<p>Para jogar só na rede local, mantenha as portas do roteador fechadas.</p>
+<label id="approved-label" hidden>Gamertags aprovadas, uma por linha<textarea id="approved-players" rows="4"></textarea></label>
+<div id="engine-prepare" hidden>
+<label>Motor Bedrock<select id="prepare-version"></select></label>
+<p><a href="https://www.minecraft.net/eula" target="_blank" rel="noopener noreferrer">Ler licença do Minecraft</a></p>
+<label class="check"><input id="prepare-eula" type="checkbox">Aceito os termos da licença e do download.</label>
+</div>
+<p id="prepare-firewall">No Windows, se o firewall perguntar, permita em redes privadas. O aviso usa o idioma do Windows.</p>
+<button id="prepare-submit" class="primary">Preparar e iniciar</button><p id="prepare-status" role="status"></p>
+</form></dialog>
+<dialog id="restore-dialog">
+<div class="section-title"><h2>Restaurar backup</h2><button data-close="restore-dialog">Fechar</button></div>
+<label>Selecione um arquivo ZIP<input id="restore-file" type="file" accept=".zip,.mcworld"></label>
+<progress id="restore-progress" hidden></progress>
+<p id="restore-status" role="status"></p><div id="restore-preview"></div>
+<label id="restore-engine-label" hidden>Motor Bedrock<select id="restore-version"></select></label>
+<p>A restauração substitui os arquivos ativos e guarda a pasta anterior.</p>
+<button id="restore-confirm" class="primary" disabled>Confirmar restauração</button>
+</dialog>
+<dialog id="config-dialog">
+<div class="section-title"><h2 id="config-heading">Editar configuração</h2><button data-close="config-dialog">Fechar</button></div>
+<p>Pare o servidor para salvar. O aplicativo usa os valores do perfil para nome, porta, modo e limite de jogadores.</p>
+<form id="config-form"><label>Conteúdo do arquivo<textarea id="config-text" rows="12" spellcheck="false"></textarea></label><button class="primary">Salvar</button></form>
+<p id="config-status" role="status"></p>
+</dialog>
+<input id="file" type="file" hidden>
+</body></html>
