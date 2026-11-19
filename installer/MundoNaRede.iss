@@ -1,10 +1,10 @@
 ; Instalador por usuário: o atualizador interno pode substituir o executável
 ; sem UAC, e o atalho permanece estável no Menu Iniciar.
 #define AppName "Mundo na Rede"
-#define AppVersion "0.2.3"
+#define AppVersion "0.2.5"
 #define AppPublisher "Mundo na Rede"
 #define AppExeName "Mundo-na-Rede.exe"
-#define SourceExe "C:\Users\emanu\Documents\Codex\2026-11-18\como-voc\outputs\Mundo-na-Rede-v0.2.3.exe"
+#define SourceExe "C:\Users\emanu\Documents\Codex\2026-11-18\como-voc\outputs\Mundo-na-Rede-v0.2.5.exe"
 
 [Setup]
 AppId={{8CA2CE45-4CE7-4D90-B64F-39A0A36A373E}
