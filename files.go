@@ -259,6 +259,10 @@ func (m *manager) backup(w http.ResponseWriter, game, id string) {
 		fail(w, err)
 		return
 	}
+	if err = pruneLocalBackups(folder); err != nil {
+		fail(w, err)
+		return
+	}
 	if _, err = archive.Seek(0, io.SeekStart); err != nil {
 		fail(w, err)
 		return

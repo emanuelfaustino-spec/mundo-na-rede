@@ -112,6 +112,9 @@ func (m *manager) api(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, map[string]string{"error": "Sessão local inválida. Reabra o aplicativo."})
 		return
 	}
+	if m.updateAPI(w, r) {
+		return
+	}
 	if r.Method == "GET" && strings.HasSuffix(r.URL.Path, "/catalog") {
 		route := strings.Split(strings.TrimPrefix(r.URL.Path, "/api/servers/"), "/")
 		if len(route) != 2 {
@@ -139,6 +142,23 @@ func (m *manager) api(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if strings.HasPrefix(r.URL.Path, "/api/account") {
+		if r.URL.Path == "/api/account/backups/delete" && r.Method == "POST" {
+			var input struct {
+				ID string `json:"id"`
+			}
+			if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 4096)).Decode(&input); err != nil {
+				fail(w, err)
+				return
+			}
+			ctx, cancel := context.WithTimeout(r.Context(), 35*time.Second)
+			defer cancel()
+			if err := m.drive.deleteCopy(ctx, input.ID); err != nil {
+				fail(w, err)
+				return
+			}
+			writeJSON(w, map[string]bool{"ok": true})
+			return
+		}
 		if r.URL.Path == "/api/account/backups" && r.Method == "GET" {
 			ctx, cancel := context.WithTimeout(r.Context(), 35*time.Second)
 			defer cancel()
@@ -342,6 +362,12 @@ func (m *manager) api(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	switch action {
+	case "delete":
+		if active {
+			err = errors.New("pare o servidor antes de excluir")
+		} else {
+			err = os.RemoveAll(m.dir(p.ID))
+		}
 	case "install", "restore", "world", "addon", "config":
 		if active {
 			fail(w, errors.New("pare o servidor antes de editar os arquivos"))
@@ -722,6 +748,9 @@ func localIPs() []string {
 	return result
 }
 func main() {
+	if runUpdateHelper() {
+		return
+	}
 	cache, err := os.UserConfigDir()
 	if err != nil {
 		cache = "."

@@ -14,6 +14,37 @@ import (
 
 var localBackupName = regexp.MustCompile(`^mundo-na-rede-[0-9]{8}-[0-9]{6}-[a-f0-9]{6}\.zip$`)
 
+const backupRetention = 7
+
+// pruneLocalBackups keeps the newest copies. Backups are already ZIP-compressed;
+// a fixed history avoids slowly filling the disk with old world snapshots.
+func pruneLocalBackups(dir string) error {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return err
+	}
+	type copy struct {
+		name string
+		date time.Time
+	}
+	var copies []copy
+	for _, entry := range entries {
+		if !entry.Type().IsRegular() || !localBackupName.MatchString(entry.Name()) {
+			continue
+		}
+		if info, infoErr := entry.Info(); infoErr == nil {
+			copies = append(copies, copy{entry.Name(), info.ModTime()})
+		}
+	}
+	sort.Slice(copies, func(i, j int) bool { return copies[i].date.After(copies[j].date) })
+	for _, old := range copies[backupRetention:] {
+		if err := os.Remove(filepath.Join(dir, old.name)); err != nil && !errors.Is(err, os.ErrNotExist) {
+			return err
+		}
+	}
+	return nil
+}
+
 func (m *manager) backupHistory(w http.ResponseWriter, r *http.Request, p Profile) {
 	dir := filepath.Join(m.dir(p.ID), "backups")
 	name := r.URL.Query().Get("name")

@@ -68,6 +68,16 @@ function showCreate() {
   $("panel").hidden = true;
   drawServers();
 }
+$("delete-server").addEventListener("click", () => {
+  if (!selected || !confirm("Excluir o servidor ‘"+selected.name+"’ e os arquivos locais dele? Faça ou confirme seus backups antes. Esta ação não pode ser desfeita.")) return;
+  const server=selected;
+  perform(async () => {
+    await request("/"+server.id+"/delete", {method:"POST"});
+    host.servers=host.servers.filter((entry)=>entry.id!==server.id);
+    showCreate();
+    notice("Servidor excluído.");
+  });
+});
 function drawServers() {
   $("servers").replaceChildren();
   for (const server of host?.servers || []) {
@@ -630,7 +640,13 @@ async function loadCloudBackups() {
       $("account").close();
       action("cloud-restore", JSON.stringify({id: copy.id}));
     });
-    row.append(label, restore);
+    const remove = document.createElement("button");
+    remove.textContent = t("Excluir backup");
+    remove.addEventListener("click", () => {
+      if (!confirm(t("Excluir esta cópia do Google Drive? Esta ação não pode ser desfeita."))) return;
+      perform(async () => { await accountRequest("/backups/delete", {method:"POST",body:JSON.stringify({id:copy.id})}); await loadCloudBackups(); });
+    });
+    row.append(label, restore, remove);
     box.append(row);
   }
   if (!copies.length) box.textContent = t("Nenhum backup do aplicativo no Drive.");
@@ -699,6 +715,10 @@ function openPreparation(start) {
   setOptions($("prepare-version"), [...(currentStatus.versions || []),...(currentStatus.legacyMotor?["legacy"]:[])], (currentStatus.versions || []).length ? "Usar versão instalada mais recente" : "Baixar BDS oficial");
   $("prepare-firewall").hidden = host?.os !== "windows";
   $("prepare-status").textContent = "";
+  const showConsoleWarning=start && localStorage.getItem("mnr-hide-console-warning")!=="true";
+  $("console-warning").hidden=!showConsoleWarning;
+  $("console-warning-choice").hidden=!showConsoleWarning;
+  $("hide-console-warning").checked=false;
   $("prepare-submit").textContent = t(start ? "Preparar e iniciar" : "Salvar preparação");
   $("prepare-dialog").showModal();
 }
@@ -724,6 +744,7 @@ $("prepare-form").addEventListener("submit", async (event) => {
   if (!server || button.disabled) return;
   button.disabled = true;
   try {
+    if (prepareStart && $("hide-console-warning").checked) localStorage.setItem("mnr-hide-console-warning","true");
     const path="/" + server.id;
     const players=$("approved-players").value.split(/\r?\n/).map((name) => name.trim()).filter(Boolean);
     await request(path+"/access",{method:"POST",body:JSON.stringify({mode:$("access-mode").value,players})});
@@ -1026,3 +1047,43 @@ function drawCPU() {
     graphic.fillRect(index*bar,canvas.height-height,bar-1,height);
   });
 }
+
+// Decorative star field stays deterministic per tab and avoids a canvas render loop.
+(() => {
+  const field=document.createElement("div");
+  field.id="space-field";
+  field.setAttribute("aria-hidden","true");
+  let seed=0x9e3779b9;
+  const random=() => ((seed=(seed*1664525+1013904223)>>>0)/4294967296);
+  for(let i=0;i<150;i++){
+    const star=document.createElement("i");
+    const size=(random()*2.1+.45).toFixed(2)+"px";
+    star.style.setProperty("--x",(random()*100).toFixed(2)+"%");
+    star.style.setProperty("--y",(random()*100).toFixed(2)+"%");
+    star.style.setProperty("--s",size);
+    star.style.setProperty("--d",(random()*26+14).toFixed(1)+"s");
+    star.style.setProperty("--delay",(-random()*35).toFixed(1)+"s");
+    star.style.setProperty("--drift",(random()*90-45).toFixed(0)+"px");
+    star.style.opacity=(random()*.68+.22).toFixed(2);
+    field.append(star);
+  }
+  document.body.prepend(field);
+})();
+
+async function checkForUpdate() {
+  try {
+    const response=await fetch("/api/update",{headers:{"X-Local-Key":key||""}});
+    const update=await response.json();
+    if(!update.available) return;
+    const automatic=localStorage.getItem("mnr-auto-update")==="true";
+    const apply=async()=>{
+      const result=await fetch("/api/update/apply",{method:"POST",headers:{"X-Local-Key":key||""}});
+      if(!result.ok) throw new Error((await result.json().catch(()=>({}))).error||"Não foi possível baixar a atualização.");
+      notice("Atualizando o Mundo na Rede… o aplicativo será reaberto.");
+    };
+    if(automatic){await apply();return;}
+    if(confirm(`Atualização ${update.version} disponível. Deseja atualizar agora?`)){await apply();return;}
+    if(confirm("Deseja ativar atualizações automáticas para as próximas versões?")) localStorage.setItem("mnr-auto-update","true");
+  } catch(error) { console.debug("Verificação de atualização indisponível",error); }
+}
+setTimeout(checkForUpdate,1200);

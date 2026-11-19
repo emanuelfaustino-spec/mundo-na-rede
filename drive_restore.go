@@ -191,6 +191,35 @@ func (d *driveBackup) downloadCopy(ctx context.Context, id, engine string, dest 
 	return nil
 }
 
+func (d *driveBackup) deleteCopy(ctx context.Context, id string) error {
+	if !driveFileID.MatchString(id) {
+		return errors.New("backup inválido")
+	}
+	d.mu.Lock()
+	token, remote := d.account.Token, d.remote
+	d.mu.Unlock()
+	if remote != "" {
+		return errors.New("exclusão de backup requer o Google Drive conectado diretamente")
+	}
+	if token == nil {
+		return errors.New("conecte o Google Drive primeiro")
+	}
+	client := d.config.Client(d.ctx(ctx), token)
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, googleDrive+"/drive/v3/files/"+id, nil)
+	if err != nil {
+		return err
+	}
+	res, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+	if res.StatusCode != http.StatusNoContent {
+		return fmt.Errorf("não foi possível excluir o backup (%d)", res.StatusCode)
+	}
+	return nil
+}
+
 func (m *manager) restoreCloud(r *http.Request, p Profile, game string) error {
 	var input struct{ ID string }
 	if err := json.NewDecoder(io.LimitReader(r.Body, 4096)).Decode(&input); err != nil {
