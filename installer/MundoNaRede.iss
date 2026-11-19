@@ -1,0 +1,41 @@
+; Instalador por usuário: o atualizador interno pode substituir o executável
+; sem UAC, e o atalho permanece estável no Menu Iniciar.
+#define AppName "Mundo na Rede"
+#define AppVersion "0.2.3"
+#define AppPublisher "Mundo na Rede"
+#define AppExeName "Mundo-na-Rede.exe"
+#define SourceExe "C:\Users\emanu\Documents\Codex\2026-11-18\como-voc\outputs\Mundo-na-Rede-v0.2.3.exe"
+
+[Setup]
+AppId={{8CA2CE45-4CE7-4D90-B64F-39A0A36A373E}
+AppName={#AppName}
+AppVersion={#AppVersion}
+AppPublisher={#AppPublisher}
+DefaultDirName={localappdata}\Programs\Mundo na Rede
+DefaultGroupName=Mundo na Rede
+DisableProgramGroupPage=yes
+PrivilegesRequired=lowest
+OutputDir=C:\Users\emanu\Documents\Codex\2026-11-18\como-voc\outputs
+OutputBaseFilename=Mundo-na-Rede-Setup-v{#AppVersion}
+SetupIconFile=..\ui\icon.ico
+UninstallDisplayIcon={app}\{#AppExeName}
+Compression=lzma2
+SolidCompression=yes
+WizardStyle=modern
+ArchitecturesInstallIn64BitMode=x64compatible
+
+[Languages]
+Name: "portuguese"; MessagesFile: "compiler:Languages\Portuguese.isl"
+
+[Tasks]
+Name: "desktopicon"; Description: "Criar atalho na área de trabalho"; GroupDescription: "Atalhos adicionais:"; Flags: unchecked
+
+[Files]
+Source: "{#SourceExe}"; DestDir: "{app}"; DestName: "{#AppExeName}"; Flags: ignoreversion
+
+[Icons]
+Name: "{autoprograms}\Mundo na Rede"; Filename: "{app}\{#AppExeName}"; WorkingDir: "{app}"; IconFilename: "{app}\{#AppExeName}"
+Name: "{autodesktop}\Mundo na Rede"; Filename: "{app}\{#AppExeName}"; WorkingDir: "{app}"; IconFilename: "{app}\{#AppExeName}"; Tasks: desktopicon
+
+[Run]
+Filename: "{app}\{#AppExeName}"; Description: "Abrir o Mundo na Rede agora"; Flags: nowait postinstall skipifsilent
