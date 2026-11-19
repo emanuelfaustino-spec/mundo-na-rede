@@ -712,14 +712,18 @@ for (const field of ["viewDistance","tickDistance"]) {
 function drawHealth(server, data) {
   const summary = $("server-summary");
   summary.replaceChildren();
-  const values = [{text:t("Porta") + " " + server.port,level:"neutral"}];
   const level=(percent)=>percent>=85?"danger":percent>=60?"warn":"good";
-  if (data.players !== undefined && server.engine === "bedrock" && data.state === "online") values.push(data.players + "/" + server.players + " " + t("jogadores"));
-  if (data.version) values.push({text:"BDS " + data.version,level:"neutral"});
-  if (data.memoryTotal) values.push({text:"RAM PC · " + (data.memoryUsed/1024).toFixed(1) + " / " + (data.memoryTotal/1024).toFixed(1) + " GiB",level:level(100*data.memoryUsed/data.memoryTotal)});
-  if (data.performance?.serverMemory) values.push({text:t("RAM do servidor")+" · "+Math.round(data.performance.serverMemory/1048576)+" MiB",level:"good",hint:"Bedrock ajusta RAM dinamicamente"});
+  const items=[];
+  const add=(label,value,percent,detail,kind="system")=>items.push({label,value,percent,detail,kind,level:percent===undefined?"neutral":level(percent)});
+  if (data.players !== undefined && server.engine === "bedrock") add(t("Jogadores"),data.players+"/"+server.players,undefined,data.state==="online"?t("conectados agora"):t("aguardando o mundo"),"players");
+  else add(t("Porta"),String(server.port),undefined,data.version?"BDS "+data.version:t("endereço do jogo"),"port");
+  if (data.memoryTotal) {
+    const percent=100*data.memoryUsed/data.memoryTotal;
+    add("RAM do PC",(data.memoryUsed/1024).toFixed(1)+" / "+(data.memoryTotal/1024).toFixed(1)+" GiB",percent,t("uso do anfitrião"),"memory");
+  }
+  if (data.performance?.serverMemory) add(t("RAM do servidor"),Math.round(data.performance.serverMemory/1048576)+" MiB",undefined,t("medição atual do processo"),"server-memory");
   if (data.performance?.serverCPU!==undefined) {
-    values.push({text:t("CPU servidor")+" "+data.performance.serverCPU.toFixed(1)+"%",level:level(data.performance.serverCPU)});
+    add(t("CPU servidor"),data.performance.serverCPU.toFixed(1)+"%",data.performance.serverCPU,t("uso do motor"),"cpu");
     cpuHistory.push(data.performance.serverCPU);
     if (cpuHistory.length>60) cpuHistory.shift();
     drawCPU();
@@ -727,18 +731,36 @@ function drawHealth(server, data) {
     cpuHistory.length=0;
     drawCPU();
   }
-  if (data.state === "online" && data.performance?.serverCPU !== undefined) {
-    const cpu=data.performance.serverCPU;
-    values.push({text:cpu >= 85 ? "▂▄▆ Estabilidade: sobrecarregado" : cpu >= 60 ? "▂▄▆ Estabilidade: atenção" : "▂▄▆ Estabilidade: ótima",level:level(cpu)});
-  }
-  if (data.performance?.hostCPU!==undefined) values.push({text:t("CPU PC")+" "+data.performance.hostCPU.toFixed(1)+"%",level:level(data.performance.hostCPU)});
-  for (const item of values) {
-    const badge = document.createElement("span");
-    const value=typeof item==="string"?{text:item,level:"neutral"}:item;
-    badge.className = "pill metric metric-"+value.level;
-    badge.textContent = value.text;
-    if(value.hint) badge.title=value.hint;
-    summary.append(badge);
+  const stability=data.state!=="online"?undefined:(data.performance?.serverCPU ?? data.performance?.hostCPU);
+  add(t("Estabilidade"),stability===undefined?t("aguardando"):stability>=85?t("sob pressão"):stability>=60?t("atenção"):t("ótima"),stability,stability===undefined?t("inicie o mundo para medir"):t("estimada pelo uso do host"),"signal");
+  if (data.performance?.hostCPU!==undefined) add(t("CPU PC"),data.performance.hostCPU.toFixed(1)+"%",data.performance.hostCPU,t("capacidade do anfitrião"),"host-cpu");
+  const icon={players:"♟",port:"⌁",memory:"◒","server-memory":"◈",cpu:"◌",signal:"⌁","host-cpu":"◉"};
+  for (const item of items) {
+    const card=document.createElement("article");
+    card.className="health-card health-"+item.level;
+    card.title=item.detail;
+    const head=document.createElement("div");
+    head.className="health-card-head";
+    const mark=document.createElement("span");
+    mark.className="health-icon";
+    mark.textContent=icon[item.kind]||"◌";
+    const label=document.createElement("small");
+    label.textContent=item.label;
+    head.append(mark,label);
+    const value=document.createElement("strong");
+    value.textContent=item.value;
+    const detail=document.createElement("small");
+    detail.className="health-detail";
+    detail.textContent=item.detail;
+    card.append(head,value,detail);
+    if(item.percent!==undefined){
+      const meter=document.createElement("span");
+      meter.className="health-meter";
+      const fill=document.createElement("i");
+      fill.style.width=Math.max(3,Math.min(100,item.percent))+"%";
+      meter.append(fill); card.append(meter);
+    }
+    summary.append(card);
   }
   $("player-summary").textContent = data.state === "online" && data.players !== undefined && server.engine === "bedrock" ? data.players + "/" + server.players + " " + t("jogadores") : "";
   $("access-warning").hidden = !data.accessWarning || data.state !== "online";
