@@ -8,7 +8,7 @@ As versões oficiais para Windows são compiladas a partir deste repositório p�
 
 - **Responsável por alterações e revisões:** [emanuelfaustino-spec](https://github.com/emanuelfaustino-spec), proprietário e mantenedor deste repositório. Contribuições externas devem ser revisadas antes de serem incorporadas.
 - **Responsável por aprovar assinaturas de lançamento:** [emanuelfaustino-spec](https://github.com/emanuelfaustino-spec). Cada lançamento assinado será aprovado manualmente.
-- **Privacidade:** o aplicativo não transfere informações para serviços externos sem ação do usuário. Ele pode baixar motores ou atualizações quando solicitado, consultar o Modrinth quando o catálogo for usado e enviar backups ao Google Drive somente após o usuário conectar e autorizar a própria conta. Os mundos, perfis e backups locais permanecem no dispositivo do anfitrião.
+- **Privacidade:** consulte a [Política de Privacidade](PRIVACY.md). O aplicativo não transfere informações para serviços externos sem ação do usuário. Ele pode baixar motores ou atualizações quando solicitado, consultar o Modrinth quando o catálogo for usado e enviar backups ao Google Drive somente após o usuário conectar e autorizar a própria conta.
 
 ## Windows
 
