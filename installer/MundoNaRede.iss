@@ -18,6 +18,7 @@ PrivilegesRequired=lowest
 OutputDir=C:\Users\emanu\Documents\Codex\2026-11-18\como-voc\outputs
 OutputBaseFilename=Mundo-na-Rede-Setup-v{#AppVersion}
 SetupIconFile=..\ui\icon.ico
+LicenseFile=termos-de-uso.txt
 UninstallDisplayIcon={app}\{#AppExeName}
 Compression=lzma2
 SolidCompression=yes

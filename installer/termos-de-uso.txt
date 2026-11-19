@@ -1,0 +1,26 @@
+TERMOS DE USO — MUNDO NA REDE
+Última atualização: novembro de 2026
+
+1. O QUE É O APLICATIVO
+Mundo na Rede é uma ferramenta para configurar e hospedar mundos/servidores de Minecraft neste dispositivo. Ele não é afiliado, aprovado nem patrocinado pela Mojang Studios ou pela Microsoft.
+
+2. RESPONSABILIDADE PELO MUNDO E PELOS DADOS
+Você é responsável pelos mundos, configurações, jogadores convidados e backups que criar. Faça cópias de segurança antes de importar, restaurar, excluir ou atualizar um servidor. A exclusão de um servidor ou backup pode ser permanente.
+
+3. CONEXÃO E SEGURANÇA
+Para jogadores da mesma rede local, use apenas redes confiáveis. Para permitir acesso pela internet, você é responsável por configurar o roteador, firewall e permissões de forma segura. Não compartilhe links, endereços IP ou acesso com pessoas que você não conhece.
+
+4. GOOGLE DRIVE
+Se você optar por conectar o Google Drive, os backups criados pelo aplicativo serão enviados à sua própria conta Google. Você pode desconectar a conta pelo aplicativo a qualquer momento. O uso do Drive também está sujeito aos termos e à política de privacidade do Google.
+
+5. ATUALIZAÇÕES
+O aplicativo pode consultar uma fonte pública de atualizações. Você pode escolher instalar uma atualização quando ela for encontrada ou ativar as atualizações automáticas. Atualizações não devem apagar seus mundos, mas é recomendável manter backups antes de atualizar.
+
+6. SOFTWARE DE TERCEIROS
+Minecraft, servidores Bedrock/Java, add-ons, mods e plugins possuem seus próprios termos e licenças. Use apenas arquivos obtidos de fontes confiáveis e compatíveis com a sua versão do jogo.
+
+7. SEM GARANTIA
+O aplicativo é fornecido "como está". Na extensão permitida pela lei, o desenvolvedor não garante funcionamento ininterrupto, compatibilidade com todos os dispositivos, redes, versões do jogo ou arquivos de terceiros.
+
+8. ACEITAÇÃO
+Ao selecionar "Aceito" e continuar a instalação, você confirma que leu e aceita estes termos.
