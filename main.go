@@ -684,6 +684,10 @@ func configure(p Profile, game string) error {
 		}
 		settings["server-name"] = p.Name
 		settings["server-portv6"] = strconv.Itoa(p.Port + 1)
+		// RakNet is the LAN transport understood by the normal Bedrock server list.
+		// New BDS packages may default to NetherNet, which can start without opening
+		// the classic UDP game ports exposed by this application.
+		settings["transport"] = "raknet"
 	} else {
 		settings["motd"] = p.Name
 		settings["pause-when-empty-seconds"] = "900"
@@ -699,7 +703,7 @@ func configure(p Profile, game string) error {
 			result = append(result, strings.TrimRight(line, "\r"))
 		}
 	}
-	for _, key := range []string{"server-name", "motd", "server-port", "server-portv6", "max-players", "gamemode", "level-name", "pause-when-empty-seconds", "allow-list", "level-seed", "difficulty", "view-distance", "tick-distance"} {
+	for _, key := range []string{"server-name", "motd", "server-port", "server-portv6", "max-players", "gamemode", "level-name", "pause-when-empty-seconds", "allow-list", "level-seed", "difficulty", "view-distance", "tick-distance", "transport"} {
 		if value, ok := settings[key]; ok {
 			result = append(result, key+"="+value)
 		}
