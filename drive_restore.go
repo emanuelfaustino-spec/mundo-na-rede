@@ -12,6 +12,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -216,6 +217,27 @@ func (d *driveBackup) deleteCopy(ctx context.Context, id string) error {
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusNoContent {
 		return fmt.Errorf("não foi possível excluir o backup (%d)", res.StatusCode)
+	}
+	return nil
+}
+
+func (d *driveBackup) retainCloudCopies(ctx context.Context, profileID string) error {
+	copies, err := d.listCopies(ctx)
+	if err != nil {
+		return err
+	}
+	filtered := make([]cloudCopy, 0, len(copies))
+	needle := "-" + profileID + "-"
+	for _, copy := range copies {
+		if strings.Contains(copy.Name, needle) {
+			filtered = append(filtered, copy)
+		}
+	}
+	sort.Slice(filtered, func(i, j int) bool { return filtered[i].Modified > filtered[j].Modified })
+	for _, copy := range filtered[backupRetention:] {
+		if err := d.deleteCopy(ctx, copy.ID); err != nil {
+			return err
+		}
 	}
 	return nil
 }

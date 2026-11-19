@@ -326,6 +326,16 @@ func (d *driveBackup) flush(ctx context.Context) {
 		if uploadErr != nil {
 			return
 		}
+		if d.remote == "" {
+			if parts := snapshotName.FindStringSubmatch(file.Name()); parts != nil {
+				if err := d.retainCloudCopies(ctx, parts[2]); err != nil {
+					d.mu.Lock()
+					d.status = "retention_error"
+					d.mu.Unlock()
+					return
+				}
+			}
+		}
 		os.Remove(filepath.Join(queue, file.Name()))
 	}
 }
