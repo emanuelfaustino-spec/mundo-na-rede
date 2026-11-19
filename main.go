@@ -51,6 +51,8 @@ type Profile struct {
 	Seed          string `json:"seed,omitempty"`
 	Difficulty    string `json:"difficulty,omitempty"`
 	Preset        string `json:"preset,omitempty"`
+	ViewDistance  int    `json:"viewDistance,omitempty"`
+	TickDistance  int    `json:"tickDistance,omitempty"`
 	PublicJava    string `json:"publicJava,omitempty"`
 	PublicBedrock string `json:"publicBedrock,omitempty"`
 }

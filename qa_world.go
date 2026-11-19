@@ -19,6 +19,9 @@ import (
 )
 
 func bedrockTuning(p Profile) (int, int) {
+	if p.ViewDistance != 0 || p.TickDistance != 0 {
+		return p.ViewDistance, p.TickDistance
+	}
 	switch p.Preset {
 	case "light":
 		return 10, 4

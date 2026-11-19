@@ -63,6 +63,10 @@ func validateProfile(p *Profile) error {
 	default:
 		return errors.New("perfil de distância inválido")
 	}
+	if (p.ViewDistance != 0 && (p.ViewDistance < 5 || p.ViewDistance > 64)) ||
+		(p.TickDistance != 0 && (p.TickDistance < 4 || p.TickDistance > 12)) {
+		return errors.New("use visão entre 5 e 64 chunks e simulação entre 4 e 12")
+	}
 	if !validPublicAddress(p.PublicJava) || !validPublicAddress(p.PublicBedrock) {
 		return errors.New("use endereço público e porta, por exemplo jogar.exemplo.com:25565")
 	}
@@ -87,7 +91,7 @@ func (m *manager) updateWorld(w http.ResponseWriter, r *http.Request, p Profile,
 		fail(w, err)
 		return
 	}
-	if active && (next.Name != p.Name || next.Port != p.Port || next.Mode != p.Mode || next.Memory != p.Memory || next.Players != p.Players || next.Seed != p.Seed || next.Difficulty != p.Difficulty || next.Preset != p.Preset) {
+	if active && (next.Name != p.Name || next.Port != p.Port || next.Mode != p.Mode || next.Memory != p.Memory || next.Players != p.Players || next.Seed != p.Seed || next.Difficulty != p.Difficulty || next.Preset != p.Preset || next.ViewDistance != p.ViewDistance || next.TickDistance != p.TickDistance) {
 		fail(w, errors.New("pare o servidor para alterar as opções do mundo"))
 		return
 	}

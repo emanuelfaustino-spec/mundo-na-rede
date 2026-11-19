@@ -44,6 +44,7 @@ let people;
 const cpuHistory=[];
 let pending = false;
 let refreshing = false;
+const serverStates = new Map();
 const form = $("create-form");
 
 async function request(path, options = {}) {
@@ -83,12 +84,22 @@ function drawServers() {
   for (const server of host?.servers || []) {
     const entry = document.createElement("button");
     entry.className = "server-entry";
-    entry.textContent = server.name;
+    const state=serverStates.get(server.id)||"parado";
+    entry.innerHTML="<span class=server-name></span><small class=server-state data-state="+state+"></small>";
+    entry.querySelector(".server-name").textContent=server.name;
+    entry.querySelector(".server-state").textContent=({online:"● online",encerrando:"◐ encerrando",falhou:"! falhou",parado:"○ offline"})[state]||"○ offline";
     entry.setAttribute("aria-current", String(server.id === selected?.id));
     entry.addEventListener("click", () => select(server));
     $("servers").append(entry);
   }
 }
+$("sidebar-toggle").addEventListener("click", () => {
+  const collapsed=document.body.classList.toggle("sidebar-collapsed");
+  $("sidebar-toggle").textContent=collapsed?"›":"‹";
+  $("sidebar-toggle").setAttribute("aria-label",collapsed?"Expandir meus servidores":"Recolher meus servidores");
+  localStorage.setItem("mnr-sidebar-collapsed",String(collapsed));
+});
+if(localStorage.getItem("mnr-sidebar-collapsed")==="true") $("sidebar-toggle").click();
 function select(server) {
   selected = server;
   currentStatus = {};
@@ -182,6 +193,8 @@ async function refresh() {
     const data = await (await request("/" + server.id + "/status")).json();
     if (selected !== server) return;
     currentStatus = data;
+    serverStates.set(server.id,data.state);
+    drawServers();
     $("state").dataset.state = data.state;
     drawHealth(server,data);
     $("access-edit").disabled = !["parado","falhou"].includes(data.state);
@@ -191,6 +204,9 @@ async function refresh() {
     $("restart").disabled = data.state !== "online";
     $("force").hidden = data.state !== "encerrando";
     $("uptime").textContent = data.seconds ? Math.floor(data.seconds / 60) + t(" min em execução") : "";
+    $("overview-status").textContent = data.state==="online"
+      ? "Mundo online · "+(data.players??0)+"/"+server.players+" jogadores · use o painel de comandos para administrar em tempo real."
+      : "Mundo "+t(data.state)+" · ajuste o mundo, prepare jogadores ou inicie quando estiver pronto.";
     fullLogs = data.logs || [];
     renderLogs();
   } catch (error) {
@@ -548,7 +564,7 @@ async function refreshExtensions(server) {
 const settingsForm = $("world-settings-form");
 $("world-edit").addEventListener("click", () => {
   if (!selected) return;
-  for (const field of ["name", "mode", "port", "players", "memory", "publicJava", "publicBedrock","seed","difficulty","preset"]) {
+  for (const field of ["name", "mode", "port", "players", "memory", "publicJava", "publicBedrock","seed","difficulty","preset","viewDistance","tickDistance"]) {
     settingsForm.elements[field].value = selected[field] ?? "";
   }
   $("world-memory").hidden = selected.engine === "bedrock";
@@ -556,6 +572,13 @@ $("world-edit").addEventListener("click", () => {
   $("address-java").hidden = !["java","both"].includes(selected.engine);
   $("address-bedrock").hidden = selected.engine === "java";
   $("world-capacity").textContent = capacityHint();
+  const updateDistanceLabels=()=>{
+    $("view-distance-output").value=settingsForm.elements.viewDistance.value+" chunks";
+    $("tick-distance-output").value=settingsForm.elements.tickDistance.value+" chunks";
+  };
+  settingsForm.elements.viewDistance.value=selected.viewDistance||10;
+  settingsForm.elements.tickDistance.value=selected.tickDistance||4;
+  updateDistanceLabels();
   $("world-settings-status").textContent = "";
   $("world-settings").showModal();
 });
@@ -564,7 +587,7 @@ settingsForm.addEventListener("submit", async (event) => {
   if (!selected) return;
   const server = selected;
   const values = Object.fromEntries(new FormData(settingsForm));
-  for (const key of ["port", "players", "memory"]) values[key] = Number(values[key]);
+  for (const key of ["port", "players", "memory", "viewDistance", "tickDistance"]) values[key] = Number(values[key]);
   const button = settingsForm.querySelector("button");
   button.disabled = true;
   try {
@@ -664,6 +687,22 @@ function chooseTab(name) {
 }
 for (const tab of document.querySelectorAll("[data-tab]")) {
   tab.addEventListener("click", () => chooseTab(tab.dataset.tab));
+}
+for (const button of document.querySelectorAll("[data-go-tab]")) {
+  button.addEventListener("click", () => chooseTab(button.dataset.goTab));
+}
+$("open-console").addEventListener("click", () => {
+  chooseTab("details");
+  $("console-details").open=true;
+  $("command").focus();
+});
+// Commands are operational controls, so keep them in Controle rather than
+// hiding them inside the player list.
+document.querySelector('[data-section="details"]').append($("console-details"));
+for (const field of ["viewDistance","tickDistance"]) {
+  settingsForm.elements[field].addEventListener("input", () => {
+    $(field==="viewDistance"?"view-distance-output":"tick-distance-output").value=settingsForm.elements[field].value+" chunks";
+  });
 }
 
 function drawHealth(server, data) {
