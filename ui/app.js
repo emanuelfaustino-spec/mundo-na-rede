@@ -117,8 +117,10 @@ function select(server) {
   $("address").textContent = host.ips.length
     ? host.ips.map((ip) => server.engine === "both" ? formatAddress(server, ip) : ip + ":" + server.port).join(" · ")
     : t("Conecte este dispositivo à rede local");
-  $("download-engine").href = engine.url;
   $("install-tip").textContent = engine.tip;
+  $("engine-explainer").textContent=server.engine==="bedrock"
+    ? "Bedrock oficial é a escolha recomendada para Minecraft no Windows e celular. Baixar automaticamente usa a versão oficial; usar arquivo já baixado importa um ZIP que você já possui."
+    : "Use o preparo automático quando disponível. Importar um motor só é necessário se você já possui um arquivo confiável e compatível.";
   $("world").hidden = server.engine !== "bedrock";
   $("eula").hidden = server.engine !== "java";
   $("official").hidden = server.engine !== "bedrock";
@@ -243,6 +245,8 @@ form.addEventListener("submit", (event) => {
     const server = await (await request("", { method: "POST", body: JSON.stringify(data) })).json();
     host.servers.push(server);
     select(server);
+    const world=$("initial-world").files[0];
+    if (server.engine==="bedrock" && world) await request("/"+server.id+"/world",{method:"POST",body:world});
     const addon=$("initial-addon").files[0];
     if (server.engine==="bedrock" && addon) await request("/"+server.id+"/addon?"+new URLSearchParams({folder:"auto",name:addon.name}),{method:"POST",body:addon});
   });
@@ -564,7 +568,7 @@ async function refreshExtensions(server) {
 const settingsForm = $("world-settings-form");
 $("world-edit").addEventListener("click", () => {
   if (!selected) return;
-  for (const field of ["name", "mode", "port", "players", "memory", "publicJava", "publicBedrock","seed","difficulty","preset","viewDistance","tickDistance"]) {
+  for (const field of ["name", "mode", "port", "players", "memory", "publicJava", "publicBedrock","difficulty","preset","viewDistance","tickDistance"]) {
     settingsForm.elements[field].value = selected[field] ?? "";
   }
   $("world-memory").hidden = selected.engine === "bedrock";
@@ -708,13 +712,14 @@ for (const field of ["viewDistance","tickDistance"]) {
 function drawHealth(server, data) {
   const summary = $("server-summary");
   summary.replaceChildren();
-  const values = [t("Porta") + " " + server.port];
+  const values = [{text:t("Porta") + " " + server.port,level:"neutral"}];
+  const level=(percent)=>percent>=85?"danger":percent>=60?"warn":"good";
   if (data.players !== undefined && server.engine === "bedrock" && data.state === "online") values.push(data.players + "/" + server.players + " " + t("jogadores"));
-  if (data.version) values.push("BDS " + data.version);
-  if (data.memoryTotal) values.push("RAM PC · " + (data.memoryUsed/1024).toFixed(1) + " / " + (data.memoryTotal/1024).toFixed(1) + " GiB");
-  if (data.performance?.serverMemory) values.push(t("RAM do servidor")+" · "+Math.round(data.performance.serverMemory/1048576)+" MiB");
+  if (data.version) values.push({text:"BDS " + data.version,level:"neutral"});
+  if (data.memoryTotal) values.push({text:"RAM PC · " + (data.memoryUsed/1024).toFixed(1) + " / " + (data.memoryTotal/1024).toFixed(1) + " GiB",level:level(100*data.memoryUsed/data.memoryTotal)});
+  if (data.performance?.serverMemory) values.push({text:t("RAM do servidor")+" · "+Math.round(data.performance.serverMemory/1048576)+" MiB",level:"good",hint:"Bedrock ajusta RAM dinamicamente"});
   if (data.performance?.serverCPU!==undefined) {
-    values.push(t("CPU servidor")+" "+data.performance.serverCPU.toFixed(1)+"%");
+    values.push({text:t("CPU servidor")+" "+data.performance.serverCPU.toFixed(1)+"%",level:level(data.performance.serverCPU)});
     cpuHistory.push(data.performance.serverCPU);
     if (cpuHistory.length>60) cpuHistory.shift();
     drawCPU();
@@ -724,13 +729,15 @@ function drawHealth(server, data) {
   }
   if (data.state === "online" && data.performance?.serverCPU !== undefined) {
     const cpu=data.performance.serverCPU;
-    values.push(cpu >= 85 ? t("Estabilidade: sobrecarregado") : cpu >= 60 ? t("Estabilidade: atenção") : t("Estabilidade: ótimo"));
+    values.push({text:cpu >= 85 ? "▂▄▆ Estabilidade: sobrecarregado" : cpu >= 60 ? "▂▄▆ Estabilidade: atenção" : "▂▄▆ Estabilidade: ótima",level:level(cpu)});
   }
-  if (data.performance?.hostCPU!==undefined) values.push(t("CPU PC")+" "+data.performance.hostCPU.toFixed(1)+"%");
-  for (const text of values) {
+  if (data.performance?.hostCPU!==undefined) values.push({text:t("CPU PC")+" "+data.performance.hostCPU.toFixed(1)+"%",level:level(data.performance.hostCPU)});
+  for (const item of values) {
     const badge = document.createElement("span");
-    badge.className = "pill";
-    badge.textContent = text;
+    const value=typeof item==="string"?{text:item,level:"neutral"}:item;
+    badge.className = "pill metric metric-"+value.level;
+    badge.textContent = value.text;
+    if(value.hint) badge.title=value.hint;
     summary.append(badge);
   }
   $("player-summary").textContent = data.state === "online" && data.players !== undefined && server.engine === "bedrock" ? data.players + "/" + server.players + " " + t("jogadores") : "";
@@ -1119,10 +1126,28 @@ async function checkForUpdate() {
       const result=await fetch("/api/update/apply",{method:"POST",headers:{"X-Local-Key":key||""}});
       if(!result.ok) throw new Error((await result.json().catch(()=>({}))).error||"Não foi possível baixar a atualização.");
       notice("Atualizando o Mundo na Rede… o aplicativo será reaberto.");
+      // The desktop shell is an Edge app window. Closing this window before
+      // the helper restarts the executable avoids leaving a stale panel open.
+      setTimeout(()=>window.close(),180);
     };
     if(automatic){await apply();return;}
-    if(confirm(`Atualização ${update.version} disponível. Deseja atualizar agora?`)){await apply();return;}
-    if(confirm("Deseja ativar atualizações automáticas para as próximas versões?")) localStorage.setItem("mnr-auto-update","true");
+    $("update-title").textContent="Versão "+update.version+" disponível";
+    $("update-notes").textContent=update.notes||"Melhorias e correções para o Mundo na Rede.";
+    $("auto-update-choice").checked=false;
+    $("update-dialog").showModal();
+    $("update-later").onclick=()=>{
+      if($("auto-update-choice").checked) localStorage.setItem("mnr-auto-update","true");
+      $("update-dialog").close();
+    };
+    $("update-apply").onclick=async()=>{
+      if($("auto-update-choice").checked) localStorage.setItem("mnr-auto-update","true");
+      $("update-apply").disabled=true;
+      try { await apply(); } catch(error) { $("update-notes").textContent=error.message; $("update-apply").disabled=false; }
+    };
   } catch(error) { console.debug("Verificação de atualização indisponível",error); }
 }
 setTimeout(checkForUpdate,1200);
+
+// This is an installed local panel, not a normal browser page. Suppress the
+// browser context menu so right-click does not expose page-oriented commands.
+document.addEventListener("contextmenu",(event)=>event.preventDefault());

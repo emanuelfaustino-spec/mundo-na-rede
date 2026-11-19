@@ -42,14 +42,14 @@ func (d *driveBackup) remotePath(name string) string {
 func (d *driveBackup) checkRemote(ctx context.Context) error {
 	marker, err := os.ReadFile(filepath.Join(d.root, "rclone-drive-marker"))
 	if err != nil {
-		return errors.New("Google Drive requires a paired backup folder")
+		return errors.New("o Google Drive precisa de uma pasta de backups vinculada")
 	}
 	name := strings.TrimSpace(string(marker))
 	if !regexp.MustCompile(`^device-[a-f0-9]{32}\.txt$`).MatchString(name) {
-		return errors.New("Invalid Drive pairing")
+		return errors.New("vínculo do Google Drive inválido")
 	}
 	if _, err = d.runRclone(ctx, "cat", d.remotePath(name), "--count", "1").Output(); err != nil {
-		return errors.New("Google Drive backup folder could not be verified")
+		return errors.New("não foi possível verificar a pasta de backups do Drive")
 	}
 	return nil
 }
@@ -61,13 +61,13 @@ func (d *driveBackup) pairRemote(ctx context.Context) error {
 		return err
 	}
 	if err := d.runRclone(ctx, "mkdir", d.remotePath("")).Run(); err != nil {
-		return errors.New("Could not open the backup folder")
+		return errors.New("não foi possível abrir a pasta de backups")
 	}
 	name := "device-" + randomHex(16) + ".txt"
 	cmd := d.runRclone(ctx, "rcat", d.remotePath(name))
 	cmd.Stdin = strings.NewReader("Mundo na Rede")
 	if err := cmd.Run(); err != nil {
-		return errors.New("Could not pair Google Drive through rclone")
+		return errors.New("não foi possível vincular o Google Drive pelo rclone")
 	}
 	return os.WriteFile(path, []byte(name), 0600)
 }

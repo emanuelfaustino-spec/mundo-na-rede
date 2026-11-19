@@ -109,7 +109,7 @@ func (d *driveBackup) handle(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, map[string]bool{"ok": true})
 	case r.URL.Path == "/api/account/pair" && r.Method == "POST":
 		if d.remote == "" {
-			fail(w, errors.New("rclone is not configured"))
+			fail(w, errors.New("rclone não está configurado"))
 			return
 		}
 		ctx, cancel := context.WithTimeout(r.Context(), 30*time.Second)
@@ -128,11 +128,11 @@ func (d *driveBackup) handle(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, map[string]any{"available": d.config.ClientID != "" || d.remote != "", "needsSetup": d.config.ClientID == "" && d.remote == "" && runtime.GOOS != "android", "bridge": d.remote != "", "name": d.account.Name, "email": d.account.Email, "status": d.status, "connected": d.cloudReady() && (d.remote == "" || d.account.Email != "")})
 	case r.URL.Path == "/api/account/connect" && r.Method == "POST":
 		if d.config.ClientID == "" {
-			fail(w, errors.New("Google Drive is unavailable on this build"))
+			fail(w, errors.New("Google Drive indisponível nesta versão do aplicativo"))
 			return
 		}
 		if d.account.Token != nil {
-			fail(w, errors.New("Disconnect the current account first"))
+			fail(w, errors.New("desconecte a conta atual primeiro"))
 			return
 		}
 		d.pendingState = randomHex(24)
@@ -254,7 +254,7 @@ func (d *driveBackup) snapshot(queue string, p Profile, game string) error {
 		}
 	}
 	if total >= 4<<30 {
-		return errors.New("offline backup queue is full")
+		return errors.New("a fila de backups locais está cheia")
 	}
 	tmp, err := os.CreateTemp(queue, "snapshot-*.tmp")
 	if err != nil {
@@ -366,7 +366,7 @@ func sendDriveSnapshot(ctx context.Context, client *http.Client, path, name stri
 	err = json.NewDecoder(io.LimitReader(found.Body, 8192)).Decode(&listing)
 	found.Body.Close()
 	if err != nil || found.StatusCode != 200 {
-		return errors.New("Drive lookup failed")
+		return errors.New("não foi possível localizar o backup no Drive")
 	}
 	if len(listing.Files) > 0 {
 		return nil
@@ -386,7 +386,7 @@ func sendDriveSnapshot(ctx context.Context, client *http.Client, path, name stri
 	session.Body.Close()
 	location, err := session.Location()
 	if err != nil || session.StatusCode != 200 || location.Scheme != "https" || location.Host != "www.googleapis.com" {
-		return errors.New("Drive upload session unavailable")
+		return errors.New("não foi possível iniciar o envio para o Drive")
 	}
 	upload, err := http.NewRequestWithContext(ctx, "PUT", location.String(), file)
 	if err != nil {
@@ -400,7 +400,7 @@ func sendDriveSnapshot(ctx context.Context, client *http.Client, path, name stri
 	}
 	response.Body.Close()
 	if response.StatusCode != 200 && response.StatusCode != 201 {
-		return fmt.Errorf("Drive upload failed: %d", response.StatusCode)
+		return fmt.Errorf("falha ao enviar para o Drive: %d", response.StatusCode)
 	}
 	return nil
 }

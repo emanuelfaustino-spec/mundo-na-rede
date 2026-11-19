@@ -22,7 +22,7 @@
 </div>
 <fieldset id="create-bedrock"><legend>Personalize seu mundo Bedrock</legend><p>Alcance maior exige mais do aparelho. A seed só afeta mundos novos.</p><label>Seed (opcional)<input name="seed" maxlength="64"><button type="button" id="random-seed">Gerar seed</button></label>
 <label>Dificuldade<select name="difficulty"><option value="">Padrão</option><option value="peaceful">Pacífico</option><option value="easy">Fácil</option><option value="normal">Normal</option><option value="hard">Difícil</option></select></label>
-<label>Distâncias do mundo<select name="preset"><option value="">Padrão do motor</option><option value="light">Leve · visão 10 / simulação 4 chunks</option><option value="balanced">Equilibrado · visão 16 / simulação 4 chunks</option><option value="reach">Alcance maior · visão 24 / simulação 6 chunks</option></select></label><label>Add-on opcional antes de iniciar<input id="initial-addon" type="file" accept=".mcpack,.mcaddon,.zip"></label></fieldset><p id="engine-tip"></p>
+<label>Distâncias do mundo<select name="preset"><option value="">Padrão do motor</option><option value="light">Leve · visão 10 / simulação 4 chunks</option><option value="balanced">Equilibrado · visão 16 / simulação 4 chunks</option><option value="reach">Alcance maior · visão 24 / simulação 6 chunks</option></select></label><label>Começar com um mundo existente (opcional)<input id="initial-world" type="file" accept=".mcworld,.zip"><small>Deixe vazio para criar um mundo novo.</small></label><label>Add-on opcional antes de iniciar<input id="initial-addon" type="file" accept=".mcpack,.mcaddon,.zip"></label></fieldset><p id="engine-tip"></p>
 <button class="primary">Criar servidor</button>
 </form>
 </section>
@@ -44,7 +44,7 @@
 <div class="card" data-section="backup">
 <h2>Motor, mundo e backups</h2>
 <p id="install-tip"></p>
-<div class="actions"><a id="download-engine" target="_blank" rel="noopener noreferrer">Obter motor</a><button id="official">Instalar BDS oficial</button><button id="mixed-install">Instalar Java + Bedrock</button><button data-upload="install" id="manual-install">Importar motor</button><button id="eula" hidden>Aceitar EULA Java</button><button data-upload="world" id="world">Importar mundo</button><button id="backup">Exportar backup</button><button id="restore-open">Restaurar backup</button></div>
+<div class="actions"><button id="official">Baixar e preparar Bedrock automaticamente</button><button id="mixed-install">Preparar Java + Bedrock</button><button data-upload="install" id="manual-install">Usar arquivo do motor já baixado</button><button id="eula" hidden>Aceitar EULA Java</button><button data-upload="world" id="world">Importar mundo existente</button><button id="backup">Exportar backup</button><button id="restore-open">Restaurar backup</button></div><p id="engine-explainer">Para Minecraft no Windows e celular, escolha o Bedrock oficial. O botão automático baixa o motor oficial; usar arquivo já baixado serve apenas para um ZIP/JAR que você já tenha.</p>
 <details id="backup-history"><summary>Histórico de backups locais</summary><div id="backup-history-list"></div></details><p>Para instalar, restaurar ou importar arquivos, pare o servidor primeiro. Use arquivos de origem confiável.</p>
 </div>
 <div class="card" data-section="world">
@@ -104,7 +104,7 @@
 <label>Limite de jogadores<input name="players" type="number" min="1" max="100" required></label>
 <label id="world-memory">Memória máxima da JVM (MiB)<input name="memory" type="number" min="512" max="32768" required></label>
 </div>
-<fieldset id="settings-bedrock"><legend>Opções Bedrock</legend><label>Seed (opcional)<input name="seed" maxlength="64"></label>
+<fieldset id="settings-bedrock"><legend>Opções Bedrock</legend><p>A seed só é escolhida na criação. Depois disso, o mundo mantém a seed que já possui.</p>
 <label>Dificuldade<select name="difficulty"><option value="">Padrão</option><option value="peaceful">Pacífico</option><option value="easy">Fácil</option><option value="normal">Normal</option><option value="hard">Difícil</option></select></label>
 <label>Perfil de distância<select name="preset"><option value="">Padrão do motor</option><option value="light">Leve · visão 10 / simulação 4 chunks</option><option value="balanced">Equilibrado · visão 16 / simulação 4 chunks</option><option value="reach">Alcance maior · visão 24 / simulação 6 chunks</option></select></label><label>Visão <output id="view-distance-output">10 chunks</output><input name="viewDistance" type="range" min="5" max="64" step="1" value="10"></label><label>Simulação <output id="tick-distance-output">4 chunks</output><input name="tickDistance" type="range" min="4" max="12" step="1" value="4"></label></fieldset><p id="world-capacity"></p>
 <p>O limite de jogadores é ajustável. Teste com mais jogadores aos poucos. A velocidade de envio da sua internet, a distância e as extensões afetam a partida.</p>
@@ -120,6 +120,7 @@
 </form>
 </dialog>
 <dialog id="invite-dialog"><div class="section-title"><h2>Convide amigos</h2><button data-close="invite-dialog">Fechar</button></div><p>No Minecraft, abra Jogar, Servidores e Adicionar servidor. Use o IP e a porta abaixo na mesma rede.</p><p id="invite-address"></p><img id="invite-image" alt="QR Code com endereço do servidor" hidden><p>O QR Code mostra o endereço para copiar.</p></dialog>
+<dialog id="update-dialog" class="update-dialog"><p class="eyebrow">ATUALIZAÇÃO DISPONÍVEL</p><h2 id="update-title">Uma nova versão chegou</h2><p id="update-notes"></p><label class="check"><input id="auto-update-choice" type="checkbox"> Atualizar automaticamente nas próximas versões</label><div class="actions"><button id="update-later">Agora não</button><button id="update-apply" class="primary">Atualizar e reiniciar</button></div></dialog>
 <dialog id="prepare-dialog">
 <div class="section-title"><h2>Vamos preparar seu servidor</h2><button data-close="prepare-dialog">Fechar</button></div>
 <form id="prepare-form">

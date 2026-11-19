@@ -87,6 +87,9 @@ func (m *manager) updateWorld(w http.ResponseWriter, r *http.Request, p Profile,
 	}
 	next.ID = p.ID
 	next.Engine = p.Engine
+	// The seed is read only after creation. Changing server.properties later
+	// does not safely replace an existing Bedrock world.
+	next.Seed = p.Seed
 	if err := validateProfile(&next); err != nil {
 		fail(w, err)
 		return

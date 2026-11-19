@@ -525,6 +525,7 @@ func (m *manager) command(p Profile, game string) (*exec.Cmd, error) {
 		}
 	}
 	cmd.Dir = game
+	hideServerWindow(cmd)
 	return cmd, nil
 }
 

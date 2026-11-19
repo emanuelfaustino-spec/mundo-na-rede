@@ -120,6 +120,7 @@ body:after{content:"";position:fixed;inset:-28%;z-index:-2;pointer-events:none;o
 .control-deck button{white-space:nowrap;flex:0 0 auto}
 #state[data-state=online]{background:linear-gradient(120deg,#4ce1c4,#67cfe8);border-color:transparent;color:#06202a;box-shadow:0 0 0 4px #4ce1c421;font-weight:850}
 #state[data-state=encerrando]{color:#ffe2a2;border-color:#f5c55a8c;background:#59421d99}
+.metric{position:relative;padding-left:13px}.metric:before{content:"";position:absolute;left:5px;width:4px;height:4px;border-radius:50%;background:#8fa0c7;box-shadow:0 0 8px currentColor}.metric-good{color:#c2fff1;border-color:#46dcaf75;background:#14564950}.metric-good:before{background:#52e4b5}.metric-warn{color:#ffebae;border-color:#e4b85480;background:#59491e63}.metric-warn:before{background:#ffd36e}.metric-danger{color:#ffd0d7;border-color:#ed718479;background:#5b263366}.metric-danger:before{background:#ff8091}.update-dialog{width:min(460px,calc(100% - 24px));text-align:left}.update-dialog::backdrop{background:#030617e8;backdrop-filter:blur(14px)}.update-dialog .check{margin:18px 0 12px}
 .overview-card{background:linear-gradient(120deg,#151a3cd9,#10243dce);border-color:#62d9ce4a}
 .overview-card h2{font-size:1.45rem}.overview-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}.overview-actions button{border-color:#668dd480;background:#0c1933c4}
 #console-details{margin-top:18px;border-top:1px solid #7187b83b;padding-top:15px}#console-details summary{font-size:1rem}
