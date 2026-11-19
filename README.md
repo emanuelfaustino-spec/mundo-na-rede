@@ -4,7 +4,7 @@ Gerenciador independente de servidores Minecraft. Cada instalação executa o pr
 
 ## Política de assinatura de código
 
-As versões oficiais para Windows são compiladas a partir deste repositório público e publicadas pela equipe do Mundo na Rede. A assinatura de código gratuita é fornecida por SignPath.io, com certificado da SignPath Foundation.
+As versões oficiais para Windows são compiladas a partir deste repositório público pela [automação de build](.github/workflows/build-windows.yml) e publicadas pela equipe do Mundo na Rede. Quando a inscrição for aprovada, a assinatura de código gratuita será fornecida por SignPath.io, com certificado da SignPath Foundation.
 
 - **Responsável por alterações e revisões:** [emanuelfaustino-spec](https://github.com/emanuelfaustino-spec), proprietário e mantenedor deste repositório. Contribuições externas devem ser revisadas antes de serem incorporadas.
 - **Responsável por aprovar assinaturas de lançamento:** [emanuelfaustino-spec](https://github.com/emanuelfaustino-spec). Cada lançamento assinado será aprovado manualmente.

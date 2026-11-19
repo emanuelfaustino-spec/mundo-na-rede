@@ -1,0 +1,43 @@
+name: Compilar Windows
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Testar e compilar Windows x64
+    runs-on: windows-latest
+    steps:
+      - name: Obter código-fonte
+        uses: actions/checkout@v4
+
+      - name: Instalar Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: "1.25.x"
+          check-latest: true
+
+      - name: Executar testes
+        run: go test ./...
+
+      - name: Verificar código
+        run: go vet ./...
+
+      - name: Compilar aplicativo
+        run: go build -trimpath -ldflags="-H=windowsgui -s -w" -o dist/Mundo-na-Rede.exe .
+
+      - name: Publicar artefato para revisão
+        uses: actions/upload-artifact@v4
+        with:
+          name: Mundo-na-Rede-Windows-x64
+          path: dist/Mundo-na-Rede.exe
+          if-no-files-found: error
+          retention-days: 14
