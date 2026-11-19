@@ -2,9 +2,17 @@
 
 Gerenciador independente de servidores Minecraft. Cada instalação executa o próprio motor no aparelho do dono do mundo. O painel abre localmente e os jogadores se conectam diretamente ao endereço LAN do anfitrião. Cada aparelho define sua porta, limite de jogadores e, quando usa Java, o limite de memória da JVM.
 
+## Política de assinatura de código
+
+As versões oficiais para Windows são compiladas a partir deste repositório público e publicadas pela equipe do Mundo na Rede. A assinatura de código gratuita é fornecida por SignPath.io, com certificado da SignPath Foundation.
+
+- **Responsável por alterações e revisões:** [emanuelfaustino-spec](https://github.com/emanuelfaustino-spec), proprietário e mantenedor deste repositório. Contribuições externas devem ser revisadas antes de serem incorporadas.
+- **Responsável por aprovar assinaturas de lançamento:** [emanuelfaustino-spec](https://github.com/emanuelfaustino-spec). Cada lançamento assinado será aprovado manualmente.
+- **Privacidade:** o aplicativo não transfere informações para serviços externos sem ação do usuário. Ele pode baixar motores ou atualizações quando solicitado, consultar o Modrinth quando o catálogo for usado e enviar backups ao Google Drive somente após o usuário conectar e autorizar a própria conta. Os mundos, perfis e backups locais permanecem no dispositivo do anfitrião.
+
 ## Windows
 
-1. Extraia o ZIP e abra `mundo-na-rede.exe`. A janela de console mantém o gerenciador ativo. O painel abre em uma janela do Edge quando disponível.
+1. Abra o instalador oficial e inicie **Mundo na Rede** pelo menu Iniciar ou pelo atalho criado. O painel abre em uma janela própria; o gerenciador e o motor do mundo executam sem exigir uma janela de console aberta.
 2. Crie um perfil **Bedrock oficial**. Consulte a EULA e os termos no link **Obter motor**. Use **Instalar BDS oficial** para baixar da Mojang, ou importe o ZIP oficial que você baixou para Windows.
 3. Clique em **Iniciar**. No Minecraft Bedrock de outro aparelho conectado à sua LAN, adicione o servidor com o IP e a porta exibidos. Caso o firewall peça permissão, escolha a rede privada. Se houver vários IPs no painel, use o da interface conectada à mesma LAN que o jogador.
 4. Para desligar, use **Parar** e aguarde o estado **parado**. Use o console para consultar comandos e logs. Fechar a janela da interface deixa o gerenciador rodando.
