@@ -19,7 +19,16 @@ func openWindowsPanel(url string) {
 		DataPath: filepath.Join(data, "MundoNexus", "webview"), AutoFocus: true,
 		WindowOptions: webview2.WindowOptions{Title: "Mundo Nexus", Width: 1120, Height: 760, Center: true},
 	})
+	if w == nil {
+		return
+	}
 	defer w.Destroy()
+	setNativeTitlebar(w.Window(), "dark")
+	// Mirror the HTML theme without replacing the native title bar buttons.
+	_ = w.Bind("nexusSetNativeTheme", func(theme string) error {
+		w.Dispatch(func() { setNativeTitlebar(w.Window(), theme) })
+		return nil
+	})
 	w.Init(`window.addEventListener('keydown', e => { if (e.key === 'F5') e.preventDefault(); }, true);`)
 	w.Navigate(url)
 	w.Run()
