@@ -2,24 +2,19 @@ package main
 
 import (
 	"os"
-	"os/exec"
 	"path/filepath"
+
+	webview2 "github.com/jchv/go-webview2"
 )
 
 func openWindowsPanel(url string) {
-	for _, variable := range []string{"ProgramFiles(x86)", "ProgramFiles", "LOCALAPPDATA"} {
-		root := os.Getenv(variable)
-		if root == "" {
-			continue
-		}
-		edge := filepath.Join(root, "Microsoft", "Edge", "Application", "msedge.exe")
-		if _, err := os.Stat(edge); err == nil {
-			// App mode removes the browser chrome. Release builds use the Windows
-			// GUI subsystem, so launching Mundo Nexo never needs a console.
-			if err = exec.Command(edge, "--app="+url, "--no-first-run", "--disable-features=TranslateUI").Start(); err == nil {
-				return
-			}
-		}
-	}
-	exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Run()
+	data, _ := os.UserCacheDir()
+	w := webview2.NewWithOptions(webview2.WebViewOptions{
+		DataPath: filepath.Join(data, "MundoNexus", "webview"), AutoFocus: true,
+		WindowOptions: webview2.WindowOptions{Title: "Mundo Nexus", Width: 1120, Height: 760, Center: true},
+	})
+	defer w.Destroy()
+	w.Init(`window.addEventListener('keydown', e => { if (e.key === 'F5') e.preventDefault(); }, true);`)
+	w.Navigate(url)
+	w.Run()
 }
