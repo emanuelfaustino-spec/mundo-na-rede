@@ -14,12 +14,13 @@
 <label>Nome<input name="name" maxlength="40" required placeholder="Meu mundo"></label>
 <div class="grid">
 <label>Quem vai jogar?<select name="engine"><option value="bedrock">Bedrock · celular e Minecraft para Windows</option><option value="pnx">Bedrock · hospedar no Android</option><option value="java">Java · Minecraft Java Edition</option><option value="both">Java e Bedrock · jogam juntos</option></select></label>
-<label>Modo<select name="mode"><option value="survival">Sobrevivência</option><option value="creative">Criativo</option></select></label>
+<label>Modo<select name="mode"><option value="survival">Sobrevivência</option><option value="creative">Criativo</option><option value="hardcore">Hardcore Bedrock</option></select></label>
 <label>Porta<input name="port" type="number" min="1024" max="65534" value="19132" required></label>
 <label>Limite de jogadores<input name="players" type="number" min="1" max="100" value="5" required></label>
 <p id="create-capacity"></p>
 <label id="memory-label" hidden>Memória máxima da JVM (MiB)<input name="memory" type="number" min="512" max="32768" value="2048" required></label>
 </div>
+<section id="world-template-picker" class="template-picker"><p class="eyebrow">COMECE COM UMA IDEIA</p><label>Modelo do mundo<select id="world-template"><option value="custom">Regras personalizadas</option><option value="friends">Mundo para amigos</option><option value="build">Mundo de construção</option><option value="challenge">Mundo de desafios</option><option value="hardcore">Sobrevivência difícil · Hardcore</option></select></label><p id="world-template-tip">Escolha um ponto de partida; você poderá revisar as regras antes de criar.</p></section>
 <fieldset id="create-bedrock"><legend>Personalize seu mundo Bedrock</legend><p>Alcance maior exige mais do aparelho. A seed só afeta mundos novos.</p><label>Seed (opcional)<input name="seed" maxlength="64"><button type="button" id="random-seed">Gerar seed</button></label>
 <label>Dificuldade<select name="difficulty"><option value="">Padrão</option><option value="peaceful">Pacífico</option><option value="easy">Fácil</option><option value="normal">Normal</option><option value="hard">Difícil</option></select></label>
 <details class="bedrock-rules" open><summary>Regras do mundo Bedrock</summary><p>Estas regras são aplicadas ao iniciar o mundo e ficam salvas nele. Pare o servidor para alterá-las.</p><div class="grid"><label class="check"><input type="checkbox" name="allowCheats"> Permitir comandos e cheats</label><label class="check"><input type="checkbox" name="forceGamemode"> Forçar modo de jogo escolhido</label><label class="check"><input type="checkbox" name="texturePackRequired"> Exigir pacotes de recursos</label><label class="check"><input type="checkbox" name="lanVisibility"> Mostrar mundo na LAN</label><label>Nível padrão de novos jogadores<select name="defaultPermission"><option value="member">Membro</option><option value="visitor">Visitante</option><option value="operator">Operador</option></select></label></div><div id="bedrock-rules-list" class="rules-list"></div><p class="rule-note"><strong>Experimentos e bônus inicial:</strong> o Bedrock Dedicated Server não expõe essas opções como configuração segura depois que o mundo existe. Use add-ons compatíveis para experimentos; o app não vai prometer uma alteração que o BDS não consegue aplicar.</p></details>
@@ -100,7 +101,7 @@
 <div class="section-title"><h2>Ajustes do mundo e da internet</h2><button data-close="world-settings">Fechar</button></div>
 <form id="world-settings-form"><div class="grid">
 <label>Nome<input name="name" maxlength="40" required></label>
-<label>Modo<select name="mode"><option value="survival">Sobrevivência</option><option value="creative">Criativo</option></select></label>
+<label>Modo<select name="mode"><option value="survival">Sobrevivência</option><option value="creative">Criativo</option><option value="hardcore">Hardcore Bedrock</option></select></label>
 <label>Porta<input name="port" type="number" min="1024" max="65534" required></label>
 <label>Limite de jogadores<input name="players" type="number" min="1" max="100" required></label>
 <label id="world-memory">Memória máxima da JVM (MiB)<input name="memory" type="number" min="512" max="32768" required></label>

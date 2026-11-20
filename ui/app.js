@@ -46,6 +46,13 @@ let pending = false;
 let refreshing = false;
 const serverStates = new Map();
 const form = $("create-form");
+const worldTemplates = {
+  custom: {tip:"Você decide cada regra. O mundo começa com os padrões seguros do Bedrock.",mode:"survival",difficulty:"normal",players:5,preset:"balanced",rules:{}},
+  friends: {tip:"Equilibrado para jogar em grupo: PvP ligado, coordenadas visíveis e desempenho moderado.",mode:"survival",difficulty:"normal",players:8,preset:"balanced",rules:{showcoordinates:true,pvp:true,keepinventory:false,dodaylightcycle:true,doweathercycle:true,naturalregeneration:true}},
+  build: {tip:"Feito para criar: modo Criativo, sem dano de queda ou fogo e coordenadas sempre visíveis.",mode:"creative",difficulty:"peaceful",players:8,preset:"light",rules:{showcoordinates:true,pvp:false,firedamage:false,falldamage:false,drowningdamage:false,keepinventory:true,domobspawning:false,mobgriefing:false,dodaylightcycle:true,doweathercycle:true}},
+  challenge: {tip:"Mais difícil, mas justo: sobrevivência no difícil, sem manter inventário e com perigo natural ativo.",mode:"survival",difficulty:"hard",players:4,preset:"balanced",rules:{showcoordinates:true,pvp:true,keepinventory:false,firedamage:true,falldamage:true,drowningdamage:true,freezedamage:true,domobspawning:true,mobgriefing:true,naturalregeneration:true}},
+  hardcore: {tip:"Hardcore Bedrock: dificuldade difícil, morte permanente segundo as regras do próprio Bedrock e sem atalhos de sobrevivência.",mode:"hardcore",difficulty:"hard",players:4,preset:"balanced",rules:{showcoordinates:true,pvp:true,keepinventory:false,firedamage:true,falldamage:true,drowningdamage:true,freezedamage:true,domobspawning:true,mobgriefing:true,naturalregeneration:true,doimmediaterespawn:false}},
+};
 
 async function request(path, options = {}) {
   const response = await fetch("/api/servers" + path, {
@@ -167,13 +174,26 @@ function updateAddonTip() {
 }
 function engineTip() {
   const engine = form.elements.engine.value;
+  const hardcoreOption=form.elements.mode.querySelector('[value="hardcore"]');
+  hardcoreOption.disabled=engine!=="bedrock";
+  if(engine!=="bedrock" && form.elements.mode.value==="hardcore") form.elements.mode.value="survival";
   $("memory-label").hidden = engine === "bedrock";
   $("create-bedrock").hidden=engine!=="bedrock";
+  $("world-template-picker").hidden=engine!=="bedrock";
   form.elements.port.value = ["java","both"].includes(engine) ? "25565" : "19132";
   if (host?.availableMemory) {
     form.elements.memory.value = Math.min(4096, Math.max(512, Math.floor(host.availableMemory / 2 / 256) * 256));
   }
   $("engine-tip").textContent = engines[engine].tip;
+}
+function applyWorldTemplate() {
+  const template=worldTemplates[$("world-template").value]||worldTemplates.custom;
+  $("world-template-tip").textContent=template.tip;
+  form.elements.mode.value=template.mode;
+  form.elements.difficulty.value=template.difficulty;
+  form.elements.players.value=template.players;
+  form.elements.preset.value=template.preset;
+  $("create-capacity").textContent=capacityHint();
 }
 function renderLogs() {
   const query = $("log-search").value.trim().toLocaleLowerCase();
@@ -242,6 +262,14 @@ form.addEventListener("submit", (event) => {
   perform(async () => {
     const data = Object.fromEntries(new FormData(form));
     for (const key of ["port", "memory", "players"]) data[key] = Number(data[key]);
+    if (data.engine==="bedrock") {
+      const template=worldTemplates[$("world-template").value]||worldTemplates.custom;
+      data.rules=template.rules;
+      data.allowCheats=false;
+      data.forceGamemode=data.mode==="hardcore";
+      data.defaultPermission="member";
+      data.lanVisibility=true;
+    }
     const server = await (await request("", { method: "POST", body: JSON.stringify(data) })).json();
     host.servers.push(server);
     select(server);
@@ -253,6 +281,7 @@ form.addEventListener("submit", (event) => {
 });
 $("new").addEventListener("click", showCreate);
 form.elements.engine.addEventListener("change", engineTip);
+$("world-template").addEventListener("change",applyWorldTemplate);
 $("addon-folder").addEventListener("change", updateAddonTip);
 $("start").addEventListener("click", () => {
   if (selected?.engine==="bedrock" && (!currentStatus.installed || !currentStatus.access || currentStatus.accessWarning)) openPreparation(true);
@@ -372,6 +401,7 @@ $("schedule-form").addEventListener("submit", (event) => {
       form.elements.engine.value = "pnx";
     }
     engineTip();
+    applyWorldTemplate();
     form.elements.players.value = host.recommendedPlayers || 4;
     $("create-capacity").textContent = capacityHint();
     if (host.servers.length) select(host.servers[0]);

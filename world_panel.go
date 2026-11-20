@@ -73,7 +73,8 @@ func validateProfile(p *Profile) error {
 	if p.Name == "" || len(p.Name) > 80 || strings.ContainsAny(p.Name, "\r\n\\") ||
 		p.Port < 1024 || p.Port > 65534 || (p.Engine == "both" && p.Port == crossplayPort) ||
 		p.Players < 1 || p.Players > 100 || p.Memory < 512 || p.Memory > 32768 ||
-		(p.Mode != "survival" && p.Mode != "creative") {
+		(p.Mode != "survival" && p.Mode != "creative" && p.Mode != "hardcore") ||
+		(p.Mode == "hardcore" && p.Engine != "bedrock") {
 		return errors.New("revise o nome, a porta e os limites do servidor")
 	}
 	if len(p.Seed) > 64 || strings.ContainsAny(p.Seed, "\r\n\\") {

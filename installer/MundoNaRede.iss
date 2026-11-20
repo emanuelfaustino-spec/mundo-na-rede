@@ -2,7 +2,7 @@
 ; sem UAC, e o atalho permanece estável no Menu Iniciar.
 #define AppName "Mundo na Rede"
 #ifndef AppVersion
-  #define AppVersion "0.3.1"
+  #define AppVersion "0.3.2"
 #endif
 #define AppPublisher "Mundo na Rede"
 #define AppExeName "Mundo-na-Rede.exe"

@@ -743,6 +743,9 @@ func configure(p Profile, game string) error {
 		if p.Difficulty != "" {
 			settings["difficulty"] = p.Difficulty
 		}
+		if p.Mode == "hardcore" {
+			settings["difficulty"] = "hard"
+		}
 		if view, tick := bedrockTuning(p); view != 0 {
 			settings["view-distance"] = strconv.Itoa(view)
 			settings["tick-distance"] = strconv.Itoa(tick)
