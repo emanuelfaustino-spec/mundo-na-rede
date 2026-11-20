@@ -8,7 +8,7 @@ func safeServerMemoryLimit(total, available int) int {
 	if total <= 0 || available <= 0 {
 		return 0
 	}
-	reserve := max(1024, total/4)
+	reserve := memoryReserveMiB(total)
 	limit := min(available-reserve, total*60/100, 32768)
 	if limit < 512 {
 		return 0
@@ -16,12 +16,28 @@ func safeServerMemoryLimit(total, available int) int {
 	return limit
 }
 
+// memoryReserveMiB protects Windows and other active applications from the
+// short memory spikes that happen while a world is loading.
+func memoryReserveMiB(total int) int {
+	return max(1024, total/4)
+}
+
+// serverMemoryTiers exposes only calm, easy-to-read half-GiB choices to the
+// primary UI: 512 MiB, 1 GiB, 1.5 GiB, 2 GiB and so on.
+func serverMemoryTiers(safe int) []int {
+	tiers := []int{}
+	for value := 512; value <= safe; value += 512 {
+		tiers = append(tiers, value)
+	}
+	return tiers
+}
+
 func recommendedServerMemory(total, available int) int {
 	limit := safeServerMemoryLimit(total, available)
 	if limit == 0 {
 		return 0
 	}
-	return min(limit, 2048)
+	return min(limit, 2048) / 512 * 512
 }
 
 func validateServerMemory(requested int) error {

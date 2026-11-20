@@ -53,6 +53,44 @@ function refreshEngineSelectTitle() {
 }
 engineSelect.addEventListener("change", refreshEngineSelectTitle);
 refreshEngineSelectTitle();
+function formatMemoryTier(mib) {
+  if (mib % 1024 === 0) return (mib / 1024) + " GiB";
+  return (mib / 1024).toLocaleString("pt-BR", {maximumFractionDigits: 1}) + " GiB";
+}
+function roundedMemoryTiers() {
+  const supplied = host?.memoryTiers;
+  if (Array.isArray(supplied) && supplied.length) return supplied;
+  const ceiling = Number(host?.safeMemory || 2048);
+  const tiers = [];
+  for (let value = 512; value <= ceiling; value += 512) tiers.push(value);
+  return tiers.length ? tiers : [512];
+}
+function closestMemoryTier(value, tiers) {
+  const requested = Number(value) || tiers[0];
+  return tiers.reduce((best, tier) => Math.abs(tier - requested) < Math.abs(best - requested) ? tier : best, tiers[0]);
+}
+function configureMemoryPicker(inputID, outputID, helpID, requested, useRecommendation = false) {
+  const input = $(inputID);
+  const output = $(outputID);
+  if (!input || !output) return;
+  const tiers = roundedMemoryTiers();
+  input.min = tiers[0];
+  input.max = tiers[tiers.length - 1];
+  input.step = 512;
+  const preferred = useRecommendation ? (host?.recommendedMemory || requested) : requested;
+  input.value = closestMemoryTier(preferred, tiers);
+  const update = () => { output.value = formatMemoryTier(Number(input.value)); };
+  input.oninput = update;
+  update();
+  const help = helpID ? $(helpID) : null;
+  if (help && host?.availableMemory) {
+    const reserve = Number(host.memoryReserve || 0);
+    const maxTier = tiers[tiers.length - 1];
+    help.textContent = formatMemoryTier(host.availableMemory) + " livres agora · " +
+      (reserve ? formatMemoryTier(reserve) + " protegidos para o PC · " : "") +
+      "até " + formatMemoryTier(maxTier) + " para este servidor.";
+  }
+}
 const worldTemplates = {
   custom: {tip:"Você decide cada regra. O mundo começa com os padrões seguros do Bedrock.",mode:"survival",difficulty:"normal",players:5,preset:"balanced",rules:{}},
   friends: {tip:"Equilibrado para jogar em grupo: PvP ligado, coordenadas visíveis e desempenho moderado.",mode:"survival",difficulty:"normal",players:8,preset:"balanced",rules:{showcoordinates:true,pvp:true,keepinventory:false,dodaylightcycle:true,doweathercycle:true,naturalregeneration:true}},
@@ -212,11 +250,7 @@ function engineTip() {
   $("world-template-picker").hidden=engine!=="bedrock";
   $("create-more").hidden=engine!=="bedrock";
   form.elements.port.value = ["java","both"].includes(engine) ? "25565" : "19132";
-  if (host?.safeMemory) {
-    form.elements.memory.max = host.safeMemory;
-    form.elements.memory.value = host.recommendedMemory || Math.min(2048, host.safeMemory);
-    $("memory-recommendation").textContent = "Recomendado: " + (host.recommendedMemory || host.safeMemory) + " MiB · máximo agora: " + host.safeMemory + " MiB";
-  }
+  configureMemoryPicker("create-memory", "create-memory-value", "memory-recommendation", form.elements.memory.value, true);
   $("engine-tip").textContent = engines[engine].tip;
 }
 function applyWorldTemplate() {
@@ -714,7 +748,7 @@ $("world-edit").addEventListener("click", () => {
     settingsForm.elements[field].value = selected[field] ?? "";
   }
   $("world-memory").hidden = false;
-  if (host?.safeMemory) settingsForm.elements.memory.max=host.safeMemory;
+  configureMemoryPicker("world-memory-input", "world-memory-value", "world-memory-help", selected.memory, false);
   $("settings-bedrock").hidden=selected.engine!=="bedrock";
   if (selected.engine==="bedrock") {
     settingsForm.elements.allowCheats.checked=Boolean(selected.allowCheats);

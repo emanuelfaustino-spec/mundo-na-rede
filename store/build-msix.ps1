@@ -43,7 +43,7 @@ $publisherNode = $xml.SelectSingleNode('/a:Package/a:Properties/a:PublisherDispl
 $publisherNode.InnerText = $PublisherDisplayName
 $xml.Save((Join-Path $stage 'AppxManifest.xml'))
 Add-Type -AssemblyName System.Drawing
-$icon = Join-Path $root 'ui\icon.png'
+$icon = Join-Path $root 'ui\icon-nexus.png'
 $source = [System.Drawing.Image]::FromFile($icon)
 try {
   $sizes = @(

@@ -26,6 +26,19 @@ func TestRecommendedMemoryWithinBudget(t *testing.T) {
 		}
 	}
 }
+
+func TestServerMemoryTiersAreHalfGiBSteps(t *testing.T) {
+	got := serverMemoryTiers(1704)
+	want := []int{512, 1024, 1536}
+	if len(got) != len(want) {
+		t.Fatalf("tiers=%v, queria %v", got, want)
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Fatalf("tiers=%v, queria %v", got, want)
+		}
+	}
+}
 func TestJavaHeapLeavesNativeOverhead(t *testing.T) {
 	for _, limit := range []int{512, 1024, 2048, 4096} {
 		heap := javaHeapLimit(limit)

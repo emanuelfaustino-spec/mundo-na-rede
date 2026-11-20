@@ -227,7 +227,8 @@ func (m *manager) api(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 			total, available := memoryMiB()
-			writeJSON(w, map[string]any{"servers": list, "ips": localIPs(), "os": runtime.GOOS, "cores": runtime.NumCPU(), "totalMemory": total, "availableMemory": available, "recommendedPlayers": recommendedPlayers(), "safeMemory": safeServerMemoryLimit(total, available), "recommendedMemory": recommendedServerMemory(total, available)})
+			safeMemory := safeServerMemoryLimit(total, available)
+			writeJSON(w, map[string]any{"servers": list, "ips": localIPs(), "os": runtime.GOOS, "cores": runtime.NumCPU(), "totalMemory": total, "availableMemory": available, "memoryReserve": memoryReserveMiB(total), "memoryTiers": serverMemoryTiers(safeMemory), "recommendedPlayers": recommendedPlayers(), "safeMemory": safeMemory, "recommendedMemory": recommendedServerMemory(total, available)})
 			return
 		}
 		if r.Method != "POST" {
