@@ -18,12 +18,17 @@ Branch: `feature/pc-only-engines-memory-0.6.0`
 - `go test -c`: testes compilados com sucesso, mas execução local bloqueada pela política de Controle de Aplicativos do Windows.
 - Verificações de sintaxe JavaScript e de integridade estrutural do painel: aprovadas.
 - Metadados oficiais de PaperMC e Eclipse Adoptium: consultados, formatos confirmados.
-- A execução real dos motores continua pendente: nenhum download foi iniciado sem aceite, nenhum firewall foi alterado.
+- Bedrock oficial 1.26.66.1 testado em mundo temporário: inicializou, recebeu `stop` e encerrou com código 0; nenhum mundo real foi modificado.
+- Aplicativo 0.6.0 executado em pasta de dados isolada: painel HTTP 200; limites de RAM retornados, pré-início testado e downloads sem aceite bloqueados com HTTP 400.
+- Chrome headless confirmou biblioteca, dez áreas e inicialização do painel; stderr do Chrome vazio.
+- Paper + Java 25 ainda precisam de validação conjunta após autorização dos downloads; firewall inalterado.
+- Pacote MSIX 0.6.0.0 gerado com identidade oficial; SHA-256 C26ED5ACF289D5BE57D443D5CD981FF3B08757FCCB19C3B2BBB89EC6CB6F1950.
+- Instalador Inno Setup 0.6.0 gerado, não assinado nem instalado.
 
 ## Antes de publicar
-1. Executar testes em ambiente de CI e corrigir as falhas.
-2. Validar Java 25 e Paper juntos após aceite dos termos; testar Bedrock, crossplay e consumo de memória real.
-3. Validar o executável 0.6.0 instalado, atalhos, recuperação de dados e atualização para MSIX assinado.
+1. CI Windows concluído com sucesso: GitHub Actions run 44818397349 (testes, vet, interface e compilação).
+2. Validar Java 25 e Paper juntos após aceite dos termos; testar crossplay e consumo de memória sob carga. Bedrock isolado já passou.
+3. Validar instalação do executável 0.6.0, WebView2 em janela nativa, atalhos, recuperação de dados e atualização para MSIX assinado.
 4. Rodar os testes de certificação Windows App Certification Kit e revisar a ficha da Store.
 5. Confirmar mercados e preço previsto de R$ 5,90. Não publicar o MSIX sem assinatura e certificação.
 
