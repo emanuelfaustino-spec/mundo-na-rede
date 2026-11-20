@@ -41,20 +41,27 @@ var ansiCodes = regexp.MustCompile("\x1b\\[[0-?]*[ -/]*[@-~]")
 var profileID = regexp.MustCompile("^[a-f0-9]{16}$")
 
 type Profile struct {
-	ID            string `json:"id"`
-	Name          string `json:"name"`
-	Engine        string `json:"engine"`
-	Port          int    `json:"port"`
-	Players       int    `json:"players"`
-	Memory        int    `json:"memory"`
-	Mode          string `json:"mode"`
-	Seed          string `json:"seed,omitempty"`
-	Difficulty    string `json:"difficulty,omitempty"`
-	Preset        string `json:"preset,omitempty"`
-	ViewDistance  int    `json:"viewDistance,omitempty"`
-	TickDistance  int    `json:"tickDistance,omitempty"`
-	PublicJava    string `json:"publicJava,omitempty"`
-	PublicBedrock string `json:"publicBedrock,omitempty"`
+	ID                  string          `json:"id"`
+	Name                string          `json:"name"`
+	Engine              string          `json:"engine"`
+	Port                int             `json:"port"`
+	Players             int             `json:"players"`
+	Memory              int             `json:"memory"`
+	Mode                string          `json:"mode"`
+	Seed                string          `json:"seed,omitempty"`
+	Difficulty          string          `json:"difficulty,omitempty"`
+	Preset              string          `json:"preset,omitempty"`
+	ViewDistance        int             `json:"viewDistance,omitempty"`
+	TickDistance        int             `json:"tickDistance,omitempty"`
+	AllowCheats         bool            `json:"allowCheats,omitempty"`
+	ForceGamemode       bool            `json:"forceGamemode,omitempty"`
+	DefaultPermission   string          `json:"defaultPermission,omitempty"`
+	TexturePackRequired bool            `json:"texturePackRequired,omitempty"`
+	LANVisibility       bool            `json:"lanVisibility,omitempty"`
+	LANVisibilitySet    bool            `json:"lanVisibilitySet,omitempty"`
+	Rules               map[string]bool `json:"rules,omitempty"`
+	PublicJava          string          `json:"publicJava,omitempty"`
+	PublicBedrock       string          `json:"publicBedrock,omitempty"`
 }
 type process struct {
 	cmd           *exec.Cmd
@@ -204,6 +211,9 @@ func (m *manager) api(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		p.PublicJava, p.PublicBedrock = "", ""
+		if p.Engine == "bedrock" {
+			p.LANVisibility, p.LANVisibilitySet = true, true
+		}
 		if err := validateProfile(&p); err != nil {
 			fail(w, err)
 			return
@@ -488,6 +498,28 @@ func sendCommand(p *process, command string) error {
 		return errors.New("o console já tem comandos pendentes")
 	}
 }
+
+// applyBedrockRules runs only after BDS reports that the world is ready. BDS
+// stores gamerules inside the world, so applying them at startup also makes
+// the selected rules survive the next launch without editing level.dat.
+func applyBedrockRules(p *process, rules map[string]bool) {
+	for _, rule := range []string{
+		"commandblockoutput", "commandblocksenabled", "dodaylightcycle",
+		"doentitydrops", "dofiretick", "doimmediaterespawn", "doinsomnia",
+		"domobloot", "domobspawning", "dotiledrops", "doweathercycle",
+		"drowningdamage", "falldamage", "firedamage", "freezedamage",
+		"keepinventory", "mobgriefing", "naturalregeneration", "pvp",
+		"sendcommandfeedback", "showcoordinates", "showdeathmessages", "tntexplodes",
+	} {
+		value, configured := rules[rule]
+		if !configured {
+			continue
+		}
+		if err := sendCommand(p, "gamerule "+rule+" "+strconv.FormatBool(value)); err != nil {
+			return
+		}
+	}
+}
 func (m *manager) command(p Profile, game string) (*exec.Cmd, error) {
 	var cmd *exec.Cmd
 	if p.Engine == "bedrock" {
@@ -532,6 +564,7 @@ func (m *manager) command(p Profile, game string) (*exec.Cmd, error) {
 type logWriter struct {
 	manager *manager
 	process *process
+	profile Profile
 	pending string
 }
 
@@ -569,6 +602,9 @@ func (l *logWriter) Write(data []byte) (int, error) {
 		if l.process.state == "iniciando" && (strings.Contains(lower, "server started") || strings.Contains(lower, "done (") || strings.Contains(lower, "done!")) {
 			l.process.state = "online"
 			l.process.ready = true
+			if l.profile.Engine == "bedrock" && len(l.profile.Rules) > 0 {
+				go applyBedrockRules(l.process, l.profile.Rules)
+			}
 		}
 	}
 	if len(l.process.lines) > 350 {
@@ -603,7 +639,7 @@ func (m *manager) start(p Profile, game string) error {
 		return err
 	}
 	proc := &process{cmd: cmd, commands: make(chan string, 32), done: make(chan struct{}), started: time.Now(), state: "iniciando", players: map[string]bool{}, banned: bannedPlayers(game)}
-	writer := &logWriter{manager: m, process: proc}
+	writer := &logWriter{manager: m, process: proc, profile: p}
 	cmd.Stdout = writer
 	cmd.Stderr = writer
 	if err = cmd.Start(); err != nil {
@@ -713,6 +749,19 @@ func configure(p Profile, game string) error {
 		}
 		settings["server-name"] = p.Name
 		settings["server-portv6"] = strconv.Itoa(p.Port + 1)
+		permission := p.DefaultPermission
+		if permission == "" {
+			permission = "member"
+		}
+		settings["allow-cheats"] = strconv.FormatBool(p.AllowCheats)
+		settings["force-gamemode"] = strconv.FormatBool(p.ForceGamemode)
+		settings["default-player-permission-level"] = permission
+		settings["texturepack-required"] = strconv.FormatBool(p.TexturePackRequired)
+		lanVisibility := true
+		if p.LANVisibilitySet {
+			lanVisibility = p.LANVisibility
+		}
+		settings["enable-lan-visibility"] = strconv.FormatBool(lanVisibility)
 		// RakNet is the LAN transport understood by the normal Bedrock server list.
 		// New BDS packages may default to NetherNet, which can start without opening
 		// the classic UDP game ports exposed by this application.
@@ -732,7 +781,7 @@ func configure(p Profile, game string) error {
 			result = append(result, strings.TrimRight(line, "\r"))
 		}
 	}
-	for _, key := range []string{"server-name", "motd", "server-port", "server-portv6", "max-players", "gamemode", "level-name", "pause-when-empty-seconds", "allow-list", "level-seed", "difficulty", "view-distance", "tick-distance", "transport"} {
+	for _, key := range []string{"server-name", "motd", "server-port", "server-portv6", "max-players", "gamemode", "level-name", "pause-when-empty-seconds", "allow-list", "level-seed", "difficulty", "view-distance", "tick-distance", "allow-cheats", "force-gamemode", "default-player-permission-level", "texturepack-required", "enable-lan-visibility", "transport"} {
 		if value, ok := settings[key]; ok {
 			result = append(result, key+"="+value)
 		}

@@ -18,6 +18,32 @@ import (
 
 var publicHost = regexp.MustCompile("(?i)^[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$")
 
+// These are the boolean gamerules exposed by the Bedrock Dedicated Server
+// console. They persist in level.dat after they are applied to a running world.
+// Keep this whitelist on the server: the browser must never be able to turn an
+// arbitrary console command into a saved world setting.
+var bedrockRules = map[string]struct{}{
+	"commandblockoutput": {}, "commandblocksenabled": {}, "dodaylightcycle": {},
+	"doentitydrops": {}, "dofiretick": {}, "doimmediaterespawn": {},
+	"doinsomnia": {}, "domobloot": {}, "domobspawning": {}, "dotiledrops": {},
+	"doweathercycle": {}, "drowningdamage": {}, "falldamage": {}, "firedamage": {},
+	"freezedamage": {}, "keepinventory": {}, "mobgriefing": {},
+	"naturalregeneration": {}, "pvp": {}, "sendcommandfeedback": {},
+	"showcoordinates": {}, "showdeathmessages": {}, "tntexplodes": {},
+}
+
+func mapsEqual(a, b map[string]bool) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for key, value := range a {
+		if b[key] != value {
+			return false
+		}
+	}
+	return true
+}
+
 func validPublicAddress(address string) bool {
 	if address == "" {
 		return true
@@ -70,6 +96,14 @@ func validateProfile(p *Profile) error {
 	if !validPublicAddress(p.PublicJava) || !validPublicAddress(p.PublicBedrock) {
 		return errors.New("use endereço público e porta, por exemplo jogar.exemplo.com:25565")
 	}
+	if p.DefaultPermission != "" && p.DefaultPermission != "visitor" && p.DefaultPermission != "member" && p.DefaultPermission != "operator" {
+		return errors.New("nível padrão de permissão inválido")
+	}
+	for rule := range p.Rules {
+		if _, ok := bedrockRules[rule]; !ok {
+			return errors.New("regra Bedrock inválida")
+		}
+	}
 	return nil
 }
 func recommendedPlayers() int {
@@ -87,6 +121,9 @@ func (m *manager) updateWorld(w http.ResponseWriter, r *http.Request, p Profile,
 	}
 	next.ID = p.ID
 	next.Engine = p.Engine
+	if next.Engine == "bedrock" {
+		next.LANVisibilitySet = true
+	}
 	// The seed is read only after creation. Changing server.properties later
 	// does not safely replace an existing Bedrock world.
 	next.Seed = p.Seed
@@ -94,7 +131,7 @@ func (m *manager) updateWorld(w http.ResponseWriter, r *http.Request, p Profile,
 		fail(w, err)
 		return
 	}
-	if active && (next.Name != p.Name || next.Port != p.Port || next.Mode != p.Mode || next.Memory != p.Memory || next.Players != p.Players || next.Seed != p.Seed || next.Difficulty != p.Difficulty || next.Preset != p.Preset || next.ViewDistance != p.ViewDistance || next.TickDistance != p.TickDistance) {
+	if active && (next.Name != p.Name || next.Port != p.Port || next.Mode != p.Mode || next.Memory != p.Memory || next.Players != p.Players || next.Seed != p.Seed || next.Difficulty != p.Difficulty || next.Preset != p.Preset || next.ViewDistance != p.ViewDistance || next.TickDistance != p.TickDistance || next.AllowCheats != p.AllowCheats || next.ForceGamemode != p.ForceGamemode || next.DefaultPermission != p.DefaultPermission || next.TexturePackRequired != p.TexturePackRequired || next.LANVisibility != p.LANVisibility || next.LANVisibilitySet != p.LANVisibilitySet || !mapsEqual(next.Rules, p.Rules)) {
 		fail(w, errors.New("pare o servidor para alterar as opções do mundo"))
 		return
 	}

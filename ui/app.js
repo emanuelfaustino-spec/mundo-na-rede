@@ -566,6 +566,46 @@ async function refreshExtensions(server) {
   }
 }
 const settingsForm = $("world-settings-form");
+const bedrockRuleOptions = [
+  ["keepinventory","Manter inventário","Itens continuam com o jogador após morrer."],
+  ["showcoordinates","Mostrar coordenadas","Exibe X, Y e Z para todos os jogadores."],
+  ["pvp","Dano entre jogadores (fogo amigo)","Desativado impede que jogadores causem dano uns aos outros."],
+  ["dodaylightcycle","Ciclo de dia e noite","O tempo continua avançando normalmente."],
+  ["doweathercycle","Ciclo do clima","Chuva e tempestades podem mudar naturalmente."],
+  ["naturalregeneration","Regeneração natural","Fome suficiente recupera a vida."],
+  ["doimmediaterespawn","Renascer imediatamente","Pula a tela de morte."],
+  ["showdeathmessages","Mostrar mensagens de morte","Avisa no chat quando alguém morre."],
+  ["domobspawning","Gerar criaturas","Permite o nascimento natural de mobs."],
+  ["mobgriefing","Mobs alteram blocos","Creepers, Endermen e outros podem afetar o mundo."],
+  ["dofiretick","Fogo se espalha","Fogo pode consumir blocos próximos."],
+  ["firedamage","Dano de fogo","Fogo e lava causam dano."],
+  ["falldamage","Dano de queda","Quedas altas causam dano."],
+  ["drowningdamage","Dano por afogamento","Ficar sem ar causa dano."],
+  ["freezedamage","Dano por congelamento","Neve fofa pode causar dano."],
+  ["domobloot","Saque de criaturas","Mobs deixam itens ao morrer."],
+  ["doentitydrops","Entidades deixam itens","Barcos, carrinhos e outras entidades soltam itens."],
+  ["dotiledrops","Blocos deixam itens","Blocos quebrados soltam seus recursos."],
+  ["tntexplodes","TNT explode","Ativa explosões de TNT."],
+  ["commandblocksenabled","Blocos de comando","Permite blocos de comando neste mundo."],
+  ["commandblockoutput","Saída de blocos de comando","Mostra mensagens enviadas por blocos de comando."],
+  ["sendcommandfeedback","Retorno de comandos","Mostra o resultado de comandos administrativos."],
+];
+const bedrockRuleDefaults = new Set(["dodaylightcycle","doweathercycle","naturalregeneration","showdeathmessages","domobspawning","mobgriefing","dofiretick","firedamage","falldamage","drowningdamage","freezedamage","domobloot","doentitydrops","dotiledrops","tntexplodes","sendcommandfeedback"]);
+function drawBedrockRules(server) {
+  const list=$("bedrock-rules-list");
+  list.replaceChildren();
+  for (const [key,label,help] of bedrockRuleOptions) {
+    const option=document.createElement("label");
+    option.className="rule-toggle";
+    const input=document.createElement("input");
+    input.type="checkbox"; input.dataset.rule=key;
+    input.checked=server.rules && key in server.rules ? Boolean(server.rules[key]) : bedrockRuleDefaults.has(key);
+    const copy=document.createElement("span");
+    const title=document.createElement("strong"); title.textContent=label;
+    const detail=document.createElement("small"); detail.textContent=help;
+    copy.append(title,detail); option.append(input,copy); list.append(option);
+  }
+}
 $("world-edit").addEventListener("click", () => {
   if (!selected) return;
   for (const field of ["name", "mode", "port", "players", "memory", "publicJava", "publicBedrock","difficulty","preset","viewDistance","tickDistance"]) {
@@ -573,6 +613,14 @@ $("world-edit").addEventListener("click", () => {
   }
   $("world-memory").hidden = selected.engine === "bedrock";
   $("settings-bedrock").hidden=selected.engine!=="bedrock";
+  if (selected.engine==="bedrock") {
+    settingsForm.elements.allowCheats.checked=Boolean(selected.allowCheats);
+    settingsForm.elements.forceGamemode.checked=Boolean(selected.forceGamemode);
+    settingsForm.elements.texturePackRequired.checked=Boolean(selected.texturePackRequired);
+    settingsForm.elements.lanVisibility.checked=selected.lanVisibilitySet===false?true:selected.lanVisibility!==false;
+    settingsForm.elements.defaultPermission.value=selected.defaultPermission||"member";
+    drawBedrockRules(selected);
+  }
   $("address-java").hidden = !["java","both"].includes(selected.engine);
   $("address-bedrock").hidden = selected.engine === "java";
   $("world-capacity").textContent = capacityHint();
@@ -591,6 +639,11 @@ settingsForm.addEventListener("submit", async (event) => {
   if (!selected) return;
   const server = selected;
   const values = Object.fromEntries(new FormData(settingsForm));
+  if (server.engine==="bedrock") {
+    for (const field of ["allowCheats","forceGamemode","texturePackRequired","lanVisibility"]) values[field]=settingsForm.elements[field].checked;
+    values.rules={};
+    for (const input of document.querySelectorAll("#bedrock-rules-list input[data-rule]")) values.rules[input.dataset.rule]=input.checked;
+  }
   for (const key of ["port", "players", "memory", "viewDistance", "tickDistance"]) values[key] = Number(values[key]);
   const button = settingsForm.querySelector("button");
   button.disabled = true;
