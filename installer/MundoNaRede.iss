@@ -1,13 +1,13 @@
 ; Instalador por usuário: o atualizador interno pode substituir o executável
 ; sem UAC, e o atalho permanece estável no Menu Iniciar.
-#define AppName "Mundo na Rede"
+#define AppName "Mundo Nexo"
 #ifndef AppVersion
   #define AppVersion "0.4.1"
 #endif
-#define AppPublisher "Mundo na Rede"
-#define AppExeName "Mundo-na-Rede.exe"
+#define AppPublisher "Mundo Nexo"
+#define AppExeName "Mundo-Nexo.exe"
 #ifndef SourceExe
-  #define SourceExe "..\dist\Mundo-na-Rede.exe"
+  #define SourceExe "..\dist\Mundo-Nexo.exe"
 #endif
 
 [Setup]
@@ -15,12 +15,12 @@ AppId={{8CA2CE45-4CE7-4D90-B64F-39A0A36A373E}
 AppName={#AppName}
 AppVersion={#AppVersion}
 AppPublisher={#AppPublisher}
-DefaultDirName={localappdata}\Programs\Mundo na Rede
-DefaultGroupName=Mundo na Rede
+DefaultDirName={localappdata}\Programs\Mundo Nexo
+DefaultGroupName=Mundo Nexo
 DisableProgramGroupPage=yes
 PrivilegesRequired=lowest
 OutputDir=C:\Users\emanu\Documents\Codex\2026-11-18\como-voc\outputs
-OutputBaseFilename=Mundo-na-Rede-Setup-v{#AppVersion}
+OutputBaseFilename=Mundo-Nexo-Setup-v{#AppVersion}
 SetupIconFile=..\ui\icon.ico
 LicenseFile=termos-de-uso.txt
 UninstallDisplayIcon={app}\{#AppExeName}
@@ -39,8 +39,8 @@ Name: "desktopicon"; Description: "Criar atalho na área de trabalho"; GroupDesc
 Source: "{#SourceExe}"; DestDir: "{app}"; DestName: "{#AppExeName}"; Flags: ignoreversion
 
 [Icons]
-Name: "{autoprograms}\Mundo na Rede"; Filename: "{app}\{#AppExeName}"; WorkingDir: "{app}"; IconFilename: "{app}\{#AppExeName}"
-Name: "{autodesktop}\Mundo na Rede"; Filename: "{app}\{#AppExeName}"; WorkingDir: "{app}"; IconFilename: "{app}\{#AppExeName}"; Tasks: desktopicon
+Name: "{autoprograms}\Mundo Nexo"; Filename: "{app}\{#AppExeName}"; WorkingDir: "{app}"; IconFilename: "{app}\{#AppExeName}"
+Name: "{autodesktop}\Mundo Nexo"; Filename: "{app}\{#AppExeName}"; WorkingDir: "{app}"; IconFilename: "{app}\{#AppExeName}"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\{#AppExeName}"; Description: "Abrir o Mundo na Rede agora"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\{#AppExeName}"; Description: "Abrir o Mundo Nexo agora"; Flags: nowait postinstall skipifsilent
