@@ -2,7 +2,8 @@ param(
   [Parameter(Mandatory=$true)][string]$IdentityName,
   [Parameter(Mandatory=$true)][string]$Publisher,
   [Parameter(Mandatory=$true)][string]$PublisherDisplayName,
-  [switch]$ValidationOnly
+  [switch]$ValidationOnly,
+  [switch]$SkipLocalTestExecution
 )
 $ErrorActionPreference = 'Stop'
 $root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
@@ -20,8 +21,12 @@ if (Test-Path $stage) { Remove-Item $stage -Force -Recurse }
 New-Item -ItemType Directory -Force -Path (Join-Path $stage 'Assets') | Out-Null
 Push-Location $root
 try {
-  & $go test ./...
-  if ($LASTEXITCODE -ne 0) { throw 'Os testes falharam.' }
+  if (-not $SkipLocalTestExecution) {
+    & $go test ./...
+    if ($LASTEXITCODE -ne 0) { throw 'Os testes falharam.' }
+  } else {
+    Write-Warning 'Execução local de go test foi ignorada. Use apenas quando uma política do Windows bloqueia binários temporários e o CI correspondente foi aprovado.'
+  }
   & $go vet ./...
   if ($LASTEXITCODE -ne 0) { throw 'go vet falhou.' }
   & $go build -trimpath '-ldflags=-H=windowsgui -s -w -X main.distributionChannel=store' -o (Join-Path $stage 'Mundo-Nexus.exe') .
