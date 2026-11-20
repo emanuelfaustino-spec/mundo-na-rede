@@ -46,6 +46,13 @@ let pending = false;
 let refreshing = false;
 const serverStates = new Map();
 const form = $("create-form");
+// Long server type labels remain accessible even when the select is narrow.
+const engineSelect = form.elements.engine;
+function refreshEngineSelectTitle() {
+  engineSelect.title = engineSelect.selectedOptions[0]?.textContent || "";
+}
+engineSelect.addEventListener("change", refreshEngineSelectTitle);
+refreshEngineSelectTitle();
 const worldTemplates = {
   custom: {tip:"Você decide cada regra. O mundo começa com os padrões seguros do Bedrock.",mode:"survival",difficulty:"normal",players:5,preset:"balanced",rules:{}},
   friends: {tip:"Equilibrado para jogar em grupo: PvP ligado, coordenadas visíveis e desempenho moderado.",mode:"survival",difficulty:"normal",players:8,preset:"balanced",rules:{showcoordinates:true,pvp:true,keepinventory:false,dodaylightcycle:true,doweathercycle:true,naturalregeneration:true}},
@@ -99,7 +106,14 @@ $("delete-server").addEventListener("click", () => {
 });
 function drawServers() {
   $("servers").replaceChildren();
-  for (const server of host?.servers || []) {
+  const servers = host?.servers || [];
+  if (!servers.length) {
+    const hint=document.createElement("p");
+    hint.className="sidebar-empty";
+    hint.textContent="Nenhum servidor criado. Use + para começar.";
+    $("servers").append(hint);
+  }
+  for (const server of servers) {
     const entry = document.createElement("button");
     entry.className = "server-entry";
     const state=serverStates.get(server.id)||"parado";
@@ -1190,6 +1204,12 @@ $("economy-mode").addEventListener("click", async () => {
 
 const storedTheme=localStorage.getItem("theme");
 if (storedTheme) document.documentElement.dataset.theme=storedTheme;
+function syncNativeWindowTheme() {
+  if (typeof window.nexusSetNativeTheme !== "function") return;
+  const theme=document.documentElement.dataset.theme==="light"?"light":"dark";
+  Promise.resolve(window.nexusSetNativeTheme(theme)).catch(()=>{});
+}
+syncNativeWindowTheme();
 const reducedMotion=localStorage.getItem("mnr-reduced-motion")==="true";
 document.documentElement.dataset.reducedMotion=String(reducedMotion);
 $("reload").addEventListener("click",()=>location.reload());
@@ -1203,6 +1223,7 @@ $("theme").addEventListener("click", () => {
   const next=document.documentElement.dataset.theme==="light"?"dark":"light";
   document.documentElement.dataset.theme=next;
   localStorage.setItem("theme",next);
+  syncNativeWindowTheme();
 });
 $("backup-history").addEventListener("toggle", () => {
   if (selected && $("backup-history").open) loadBackupHistory(selected);
