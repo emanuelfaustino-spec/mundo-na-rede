@@ -866,10 +866,24 @@ func main() {
 	if err != nil {
 		cache = "."
 	}
-	root := flag.String("data", filepath.Join(cache, "MundoNaRede"), "pasta de dados")
+	defaultRoot := filepath.Join(cache, "MundoNexus")
+	root := flag.String("data", defaultRoot, "pasta de dados")
 	port := flag.Int("panel-port", 37654, "porta local do painel")
 	noBrowser := flag.Bool("no-browser", false, "exibe o endereço sem abrir o navegador")
 	flag.Parse()
+	// One-time compatibility migration: the old public name used MundoNaRede.
+	// An explicit -data path always wins; automatic migration happens only for
+	// the normal new default and only when no destination exists yet.
+	if *root == defaultRoot {
+		legacy := filepath.Join(cache, "MundoNaRede")
+		if _, oldErr := os.Stat(legacy); oldErr == nil {
+			if _, newErr := os.Stat(defaultRoot); errors.Is(newErr, os.ErrNotExist) {
+				if err = os.Rename(legacy, defaultRoot); err != nil {
+					log.Printf("não foi possível migrar dados antigos: %v", err)
+				}
+			}
+		}
+	}
 	absolute, err := filepath.Abs(*root)
 	if err != nil {
 		log.Fatal(err)

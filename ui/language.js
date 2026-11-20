@@ -320,7 +320,7 @@ function t(text) {
   return language === "en" ? english[text] || text : text;
 }
 document.documentElement.lang = language === "pt" ? "pt-BR" : "en";
-document.title = language === "pt" ? "Mundo Nexo" : "World Nexus";
+document.title = language === "pt" ? "Mundo Nexus" : "World Nexus";
 const languageSelect = document.getElementById("language");
 languageSelect.value = language;
 languageSelect.addEventListener("change", () => {
@@ -340,5 +340,5 @@ for (const element of document.querySelectorAll("[placeholder], [aria-label]")) 
 }
 const brandName = document.getElementById("brand-name");
 const brandTagline = document.getElementById("brand-tagline");
-if (brandName) brandName.textContent = language === "pt" ? "Mundo Nexo" : "World Nexus";
+if (brandName) brandName.textContent = language === "pt" ? "Mundo Nexus" : "World Nexus";
 if (brandTagline) brandTagline.textContent = language === "pt" ? "seu universo, sua rede" : "your worlds, your network";
