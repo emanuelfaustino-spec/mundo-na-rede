@@ -1174,6 +1174,15 @@ $("economy-mode").addEventListener("click", async () => {
 
 const storedTheme=localStorage.getItem("theme");
 if (storedTheme) document.documentElement.dataset.theme=storedTheme;
+const reducedMotion=localStorage.getItem("mnr-reduced-motion")==="true";
+document.documentElement.dataset.reducedMotion=String(reducedMotion);
+$("reload").addEventListener("click",()=>location.reload());
+$("motion").addEventListener("click",()=>{
+  const next=document.documentElement.dataset.reducedMotion!=="true";
+  document.documentElement.dataset.reducedMotion=String(next);
+  localStorage.setItem("mnr-reduced-motion",String(next));
+  notice(next?"Animações reduzidas para este dispositivo.":"Animações restauradas.");
+});
 $("theme").addEventListener("click", () => {
   const next=document.documentElement.dataset.theme==="light"?"dark":"light";
   document.documentElement.dataset.theme=next;
