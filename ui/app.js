@@ -137,7 +137,7 @@ function select(server) {
     : t("Conecte este dispositivo à rede local");
   $("install-tip").textContent = engine.tip;
   $("engine-explainer").textContent=server.engine==="bedrock"
-    ? "Bedrock oficial é a escolha recomendada para Minecraft no Windows e celular. Baixar automaticamente usa a versão oficial; usar arquivo já baixado importa um ZIP que você já possui."
+    ? "O motor Bedrock fica salvo na Biblioteca e pode ser usado por outros servidores."
     : "Use o preparo automático quando disponível. Importar um motor só é necessário se você já possui um arquivo confiável e compatível.";
   $("world").hidden = server.engine !== "bedrock";
   $("eula").hidden = server.engine !== "java";
@@ -193,13 +193,15 @@ function engineTip() {
   const hardcoreOption=form.elements.mode.querySelector('[value="hardcore"]');
   hardcoreOption.disabled=engine!=="bedrock";
   if(engine!=="bedrock" && form.elements.mode.value==="hardcore") form.elements.mode.value="survival";
-  $("memory-label").hidden = engine === "bedrock";
+  $("memory-label").hidden = false;
   $("create-bedrock").hidden=engine!=="bedrock";
   $("world-template-picker").hidden=engine!=="bedrock";
   $("create-more").hidden=engine!=="bedrock";
   form.elements.port.value = ["java","both"].includes(engine) ? "25565" : "19132";
-  if (host?.availableMemory) {
-    form.elements.memory.value = Math.min(4096, Math.max(512, Math.floor(host.availableMemory / 2 / 256) * 256));
+  if (host?.safeMemory) {
+    form.elements.memory.max = host.safeMemory;
+    form.elements.memory.value = host.recommendedMemory || Math.min(2048, host.safeMemory);
+    $("memory-recommendation").textContent = "Recomendado: " + (host.recommendedMemory || host.safeMemory) + " MiB · máximo agora: " + host.safeMemory + " MiB";
   }
   $("engine-tip").textContent = engines[engine].tip;
 }
@@ -452,20 +454,17 @@ $("schedule-form").addEventListener("submit", (event) => {
 (async function initialize() {
   try {
     host = await (await request("")).json();
-    const platform = { windows: "Windows", android: "Android", linux: "Linux" }[host.os] || host.os;
+    const platform = { windows: "Windows", linux: "Linux" }[host.os] || host.os;
     $("device").textContent = platform + " · " + host.cores + t(" núcleos") +
       (host.totalMemory ? " · " + (host.totalMemory / 1024).toFixed(1) + " GiB RAM" : "");
-    if (host.os === "android") {
-      form.elements.engine.querySelector('[value="bedrock"]').disabled = true;
-      form.elements.engine.value = "pnx";
-    }
+
     engineTip();
     applyWorldTemplate();
     form.elements.players.value = host.recommendedPlayers || 4;
     $("create-capacity").textContent = capacityHint();
     if (host.servers.length) select(host.servers[0]);
     else showCreate();
-    setInterval(refresh, 1400);
+    setInterval(()=>{if(!document.hidden) refresh();}, 2800);
   } catch (error) {
     notice(error.message, true);
   }
@@ -500,8 +499,7 @@ async function showAccount() {
 	  $("account-setup").open=true;
 	}
   $("account-name").textContent = account.bridge ? "" : [account.name, account.email].filter(Boolean).join(" · ");
-  $("account-bridge").hidden = !account.bridge;
-  $("account-pair").hidden = !account.bridge || account.connected;
+
   if (!account.connected) $("cloud-backups").replaceChildren();
   $("account-connect").disabled = !account.available;
   $("account-connect").hidden = account.connected || account.bridge;
@@ -533,10 +531,7 @@ $("account-connect").addEventListener("click", () => {
     }
   });
 });
-$("account-pair").addEventListener("click", () => updateAccount(async () => {
-  await accountRequest("/pair", "POST");
-  await loadCloudBackups();
-}));
+
 $("account-disconnect").addEventListener("click", () => {
   if (confirm(t("Desconectar este aparelho da conta Google?"))) updateAccount(() => accountRequest("/disconnect", "POST"));
 });
@@ -553,7 +548,7 @@ $("account-setup-form").addEventListener("submit", (event) => {
   });
 });
 setInterval(() => {
-  if ($("account").open) updateAccount(async () => {});
+  if (!document.hidden && $("account").open) updateAccount(async () => {});
 }, 3500);
 
 
@@ -594,7 +589,7 @@ $("config-form").addEventListener("submit", async (event) => {
 function capacityHint() {
   const players=host?.recommendedPlayers || 4;
   const cores=host?.cores || 1;
-  const ram=host?.totalMemory ? (host.totalMemory/1024).toFixed(1)+" GiB RAM" : "RAM disponível";
+  const ram=host?.availableMemory ? (host.availableMemory/1024).toFixed(1)+" GiB livres" : "RAM não identificada";
   return "Recomendado para este PC · até "+players+" jogadores · "+cores+" núcleos · "+ram;
 }
 function drawPublicAddresses(server) {
@@ -704,7 +699,8 @@ $("world-edit").addEventListener("click", () => {
   for (const field of ["name", "mode", "port", "players", "memory", "publicJava", "publicBedrock","difficulty","preset","viewDistance","tickDistance"]) {
     settingsForm.elements[field].value = selected[field] ?? "";
   }
-  $("world-memory").hidden = selected.engine === "bedrock";
+  $("world-memory").hidden = false;
+  if (host?.safeMemory) settingsForm.elements.memory.max=host.safeMemory;
   $("settings-bedrock").hidden=selected.engine!=="bedrock";
   if (selected.engine==="bedrock") {
     settingsForm.elements.allowCheats.checked=Boolean(selected.allowCheats);
@@ -866,10 +862,10 @@ function drawHealth(server, data) {
   if (data.players !== undefined && server.engine === "bedrock") add(t("Jogadores"),data.players+"/"+server.players,undefined,data.state==="online"?t("conectados agora"):t("aguardando o mundo"),"players");
   else add(t("Porta"),String(server.port),undefined,data.version?"BDS "+data.version:t("endereço do jogo"),"port");
   if (data.memoryTotal) {
-    const percent=100*data.memoryUsed/data.memoryTotal;
-    add("RAM do PC",(data.memoryUsed/1024).toFixed(1)+" / "+(data.memoryTotal/1024).toFixed(1)+" GiB",percent,t("uso do anfitrião"),"memory");
+    const percent=100*data.memoryAvailable/data.memoryTotal;
+    add("RAM livre do PC",(data.memoryAvailable/1024).toFixed(1)+" GiB",percent,t("capacidade disponível"),"memory");
   }
-  if (data.performance?.serverMemory) add(t("RAM do servidor"),Math.round(data.performance.serverMemory/1048576)+" MiB",undefined,t("medição atual do processo"),"server-memory");
+  if (data.performance?.serverMemory) add(t("RAM do servidor"),Math.round(data.performance.serverMemory/1048576)+" / "+data.serverMemoryLimit+" MiB",100*data.performance.serverMemory/1048576/data.serverMemoryLimit,t("medição do processo do motor"),"server-memory");
   if (data.performance?.serverCPU!==undefined) {
     add(t("CPU servidor"),data.performance.serverCPU.toFixed(1)+"%",data.performance.serverCPU,t("uso do motor"),"cpu");
     cpuHistory.push(data.performance.serverCPU);

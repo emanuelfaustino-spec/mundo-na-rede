@@ -31,7 +31,7 @@ const english = {
   "O acesso externo exige uma configuração autorizada. Nenhuma porta será aberta automaticamente.":"External access requires explicit setup. No ports are opened automatically.",
   "Salve seus mundos no Google Drive.":"Save your worlds to Google Drive.",
   "Abrir Conta e Drive":"Open account and Drive",
-  "Controle pelo celular":"Phone access",
+
   "O controle remoto seguro ainda não está disponível. Nenhum acesso remoto é ativado sem autorização.":"Secure remote control is not available yet. No remote access is enabled without authorization.",
   "Ajuda rápida":"Quick help",
   "Encontre o que precisa sem ler um manual.":"Find answers without reading a manual.",
@@ -180,7 +180,7 @@ const english = {
   "o ZIP não contém um mundo, configuração ou motor reconhecido": "The ZIP has no recognized world, settings, or server software",
   "a validação expirou. Selecione o ZIP de novo": "Validation expired. Select the ZIP again.",
   "Vincular pasta do Drive": "Link Drive folder",
-  "No Termux, configure o Drive no rclone e vincule a pasta de backups aqui.": "In Termux, configure Drive in rclone and link the backup folder here.",
+
   "Restaurar do Drive": "Restore from Drive",
   "Restaurar o backup no mundo selecionado? A pasta anterior será preservada.": "Restore the backup to the selected world? Its previous folder will be kept.",
   "Nenhum backup do aplicativo no Drive.": "No app backups in Drive.",
@@ -213,8 +213,8 @@ const english = {
   "Conteúdo do arquivo": "File contents",
   "Salvar": "Save",
   "Quem vai jogar?": "Who will play?",
-  "Bedrock · celular e Minecraft para Windows": "Bedrock · mobile and Minecraft for Windows",
-  "Bedrock · hospedar no Android": "Bedrock · host on Android",
+
+
   "Java · Minecraft Java Edition": "Java · Minecraft Java Edition",
   "Java e Bedrock · jogam juntos": "Java and Bedrock · play together",
   "Java e Bedrock": "Java and Bedrock",
@@ -294,7 +294,7 @@ const english = {
   "Guia do aplicativo": "App guide",
   "Fechar": "Close",
   "Criar e iniciar": "Create and start",
-  "Crie um servidor e escolha o motor. No PC, escolha Bedrock oficial para jogar com celulares e Windows. No Android, a edição experimental usa Termux e PowerNukkitX. Importe ou instale o motor recomendado, depois clique em Iniciar.": "Create a server and choose its software. On PC, select Official Bedrock to play with mobile and Windows devices. On Android, the experimental build uses Termux and PowerNukkitX. Import or install the recommended software, then select Start.",
+
   "Entrar no mundo": "Join a world",
   "Conecte os aparelhos à mesma rede. No Minecraft Bedrock, abra Jogar, Servidores e Adicionar servidor. Cole o IP e a porta mostrados no painel em seus respectivos campos. Use a mesma versão compatível do jogo.": "Connect the devices to the same network. In Minecraft Bedrock, open Play, Servers and Add Server. Enter the IP address and port shown in the dashboard in their respective fields. Use a compatible game version.",
   "Trazer um mundo existente": "Bring an existing world",

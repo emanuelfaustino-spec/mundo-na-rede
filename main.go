@@ -75,17 +75,19 @@ type process struct {
 	accessWarning bool
 	sample        cpuSample
 	state         string
+	releaseJob    func()
 	lines         []string
 	generation    *generationJob
 }
 type manager struct {
-	root     string
-	progress sync.Map
-	drive    *driveBackup
-	token    string
-	mu       sync.Mutex
-	running  map[string]*process
-	lastRun  map[string]time.Time
+	engineInstallMu sync.Mutex
+	root            string
+	progress        sync.Map
+	drive           *driveBackup
+	token           string
+	mu              sync.Mutex
+	running         map[string]*process
+	lastRun         map[string]time.Time
 }
 
 func randomHex(bytes int) string {
@@ -146,6 +148,9 @@ func (m *manager) api(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if m.updateAPI(w, r) {
+		return
+	}
+	if m.engineLibraryAPI(w, r) {
 		return
 	}
 	if r.Method == "GET" && strings.HasSuffix(r.URL.Path, "/catalog") {
@@ -222,7 +227,7 @@ func (m *manager) api(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 			total, available := memoryMiB()
-			writeJSON(w, map[string]any{"servers": list, "ips": localIPs(), "os": runtime.GOOS, "cores": runtime.NumCPU(), "totalMemory": total, "availableMemory": available, "recommendedPlayers": recommendedPlayers()})
+			writeJSON(w, map[string]any{"servers": list, "ips": localIPs(), "os": runtime.GOOS, "cores": runtime.NumCPU(), "totalMemory": total, "availableMemory": available, "recommendedPlayers": recommendedPlayers(), "safeMemory": safeServerMemoryLimit(total, available), "recommendedMemory": recommendedServerMemory(total, available)})
 			return
 		}
 		if r.Method != "POST" {
@@ -232,6 +237,10 @@ func (m *manager) api(w http.ResponseWriter, r *http.Request) {
 		var p Profile
 		if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 8192)).Decode(&p); err != nil {
 			fail(w, err)
+			return
+		}
+		if p.Engine == "pnx" {
+			fail(w, errors.New("PowerNukkitX só é mantido em perfis antigos; escolha Bedrock ou Java"))
 			return
 		}
 		p.PublicJava, p.PublicBedrock = "", ""
@@ -383,7 +392,7 @@ func (m *manager) api(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		_, engineError := m.command(p, game)
-		result := map[string]any{"state": state, "logs": lines, "seconds": seconds, "installed": engineError == nil}
+		result := map[string]any{"state": state, "logs": lines, "seconds": seconds, "installed": engineError == nil || m.cachedEngineAvailable(p)}
 		if proc != nil && proc.generation != nil {
 			job := proc.generation
 			result["pregeneration"] = map[string]any{"state": job.State, "radius": job.Radius, "total": job.Total, "completed": job.Completed, "started": job.Started}
@@ -407,6 +416,9 @@ func (m *manager) api(w http.ResponseWriter, r *http.Request) {
 		total, available := memoryMiB()
 		result["memoryTotal"] = total
 		result["memoryUsed"] = max(0, total-available)
+		result["memoryAvailable"] = available
+		result["safeMemory"] = safeServerMemoryLimit(total, available)
+		result["serverMemoryLimit"] = p.Memory
 		writeJSON(w, result)
 		return
 	}
@@ -599,7 +611,7 @@ func (m *manager) command(p Profile, game string) (*exec.Cmd, error) {
 			cmd.Env = append(os.Environ(), "LD_LIBRARY_PATH="+game)
 		}
 	} else {
-		java, err := exec.LookPath("java")
+		java, err := javaExecutable(m.root)
 		if err != nil {
 			return nil, errors.New("instale Java compatível e coloque o executável no PATH")
 		}
@@ -607,7 +619,7 @@ func (m *manager) command(p Profile, game string) (*exec.Cmd, error) {
 		if _, err = os.Stat(jar); err != nil {
 			return nil, errors.New("importe o JAR do motor escolhido")
 		}
-		args := []string{"-Xms256M", fmt.Sprintf("-Xmx%dM", p.Memory), "-jar", jar}
+		args := []string{"-Xms256M", fmt.Sprintf("-Xmx%dM", javaHeapLimit(p.Memory)), "-jar", jar}
 		if p.Engine == "java" || p.Engine == "both" {
 			args = append(args, "nogui")
 		}
@@ -673,6 +685,9 @@ func (l *logWriter) Write(data []byte) (int, error) {
 	return len(data), nil
 }
 func (m *manager) start(p Profile, game string) error {
+	if err := validateServerMemory(p.Memory); err != nil {
+		return err
+	}
 	for id, active := range m.running {
 		if id == p.ID || active.state == "parado" || active.state == "falhou" {
 			continue
@@ -686,6 +701,9 @@ func (m *manager) start(p Profile, game string) error {
 			p.Port == other.Port || (p.Engine == "bedrock" && p.Port+1 == other.Port) || (other.Engine == "bedrock" && other.Port+1 == p.Port) {
 			return fmt.Errorf("porta em uso pelo servidor %s", other.Name)
 		}
+	}
+	if err := m.ensureCachedEngine(p, game); err != nil {
+		return err
 	}
 	cmd, err := m.command(p, game)
 	if err != nil {
@@ -706,6 +724,13 @@ func (m *manager) start(p Profile, game string) error {
 		stdin.Close()
 		return err
 	}
+	proc.releaseJob, err = limitServerProcess(cmd.Process.Pid, p.Memory)
+	if err != nil {
+		_ = cmd.Process.Kill()
+		go cmd.Wait() // reaps the process without waiting while manager.mu is held
+		stdin.Close()
+		return fmt.Errorf("não foi possível aplicar o limite de RAM: %w", err)
+	}
 	m.running[p.ID] = proc
 	go func() {
 		for {
@@ -721,6 +746,9 @@ func (m *manager) start(p Profile, game string) error {
 	}()
 	go func() {
 		err := cmd.Wait()
+		if proc.releaseJob != nil {
+			proc.releaseJob()
+		}
 		m.mu.Lock()
 		defer m.mu.Unlock()
 		if writer.pending != "" {
@@ -935,8 +963,6 @@ func main() {
 		switch runtime.GOOS {
 		case "windows":
 			go openWindowsPanel(url)
-		case "android":
-			go exec.Command("termux-open-url", url).Run()
 		default:
 			go exec.Command("xdg-open", url).Run()
 		}

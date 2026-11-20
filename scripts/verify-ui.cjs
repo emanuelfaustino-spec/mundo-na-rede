@@ -13,7 +13,7 @@ const expected=["all","world","addons","people","console","backup","network","au
 assert.deepEqual([...tabs].sort(),[...expected].sort(),"Navegação incompleta");
 assert.deepEqual([...sections].sort(),[...expected].sort(),"Conteúdo das abas incompleto");
 for(const id of [
- "world-tabs","more-tabs","expert-toggle","create-more","start","stop","restart","address",
+ "world-tabs","more-tabs","expert-toggle","create-more","engines-dialog","engines-prepare","create-engine-open","start","stop","restart","address",
  "server-name","check-server","preflight-result","network-test","network-result",
  "addons-controls","addons-content","console-content","console-details",
  "player-add-form","backup-history","backup-history-list","backup","restore-open",
@@ -21,7 +21,7 @@ for(const id of [
  "schedule-form","engine-tip","install-tip","engine-explainer",
  "official","mixed-install","manual-install","addon-folder","addon-tip","catalog","delete-server"
 ])assert(seen.has(id),"Elemento ausente: "+id);
-for(const name of ["language.js","app.js","unified.js"])
+for(const name of ["language.js","app.js","unified.js","engine-library.js"])
  assert(html.includes('src="'+name+'"'),"Script ausente: "+name);
 const app=fs.readFileSync(path.join(root,"ui","app.js"),"utf8");
 const unified=fs.readFileSync(path.join(root,"ui","unified.js"),"utf8");

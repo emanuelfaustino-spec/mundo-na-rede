@@ -37,6 +37,7 @@ jobs:
           node --check ui/app.js
           node --check ui/language.js
           node --check ui/unified.js
+          node --check ui/engine-library.js
           node scripts/verify-ui.cjs
 
       - name: Compilar aplicativo

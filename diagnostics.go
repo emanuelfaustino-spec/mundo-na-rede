@@ -35,10 +35,10 @@ func (m *manager) preflight(p Profile, game string) preflightReport {
 		add("world", "ok", "Pasta do mundo encontrada.", "")
 	}
 
-	if _, err := m.command(p, game); err != nil {
-		add("engine", "error", err.Error(), "Abra Mundo e prepare um motor compatível.")
+	if _, err := m.command(p, game); err != nil && !m.cachedEngineAvailable(p) {
+		add("engine", "error", err.Error(), "Prepare os motores na biblioteca do PC.")
 	} else {
-		add("engine", "ok", "Motor disponível.", "")
+		add("engine", "ok", "Motor disponível na biblioteca.", "")
 	}
 
 	active := m.running[p.ID] != nil && m.running[p.ID].state != "parado" && m.running[p.ID].state != "falhou"
@@ -81,6 +81,11 @@ func (m *manager) preflight(p Profile, game string) preflightReport {
 		}
 	}
 
+	if err := validateServerMemory(p.Memory); err != nil {
+		add("memory", "error", err.Error(), "Diminua o limite em Mundo, ou feche outros programas.")
+	} else {
+		add("memory", "ok", fmt.Sprintf("Limite de RAM: %d MiB.", p.Memory), "")
+	}
 	if p.Engine != "bedrock" {
 		_, available := memoryMiB()
 		if available > 0 && p.Memory > available-256 {
