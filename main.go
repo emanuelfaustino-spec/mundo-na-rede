@@ -268,6 +268,10 @@ func (m *manager) api(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	action := parts[1]
+	if action == "preflight" && r.Method == http.MethodGet {
+		writeJSON(w, m.preflight(p, filepath.Join(m.dir(p.ID), "game")))
+		return
+	}
 	if action == "backup-history" {
 		m.backupHistory(w, r, p)
 		return

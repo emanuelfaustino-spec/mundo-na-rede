@@ -170,3 +170,39 @@ select,input{max-width:100%;min-width:0}
 .pregeneration{margin:16px 0;padding:16px;border:1px solid #5edbca52;border-radius:16px;background:linear-gradient(120deg,#102d3a9c,#161945a8)}
 .pregeneration h3{margin:0 0 5px;font-size:1rem}.pregeneration label{max-width:520px;margin:13px 0 4px}.pregeneration input{width:100%;padding:0;accent-color:var(--aqua)}
 
+
+/* Mundo Nexus 0.5: navegação objetiva e recursos avançados sob demanda. */
+#world-tabs{grid-template-columns:repeat(7,minmax(0,1fr));overflow:visible;align-items:stretch}
+.hero{overflow:visible}
+#world-tabs button{font-size:.76rem;white-space:normal;line-height:1.2}
+#world-tabs [data-tab="addons"]{letter-spacing:-.015em}
+#world-tabs .tab-icon{font-size:1.05rem;line-height:1}
+#more-tabs{position:relative;min-width:0}
+#more-tabs summary{height:100%;display:flex;align-items:center;justify-content:center;gap:5px;cursor:pointer;color:var(--muted);font-size:.82rem;list-style:none;padding:7px;border-radius:10px}
+#more-tabs summary::-webkit-details-marker{display:none}
+#more-tabs[open] summary{background:#284675;color:#fff}
+#more-tabs .more-list{position:absolute;right:0;top:calc(100% + 7px);width:min(270px,82vw);z-index:20;display:grid;gap:5px;padding:10px;border-radius:14px;border:1px solid #5c7db47c;background:#101d36;box-shadow:0 16px 42px #020816d9}
+#more-tabs .more-list button{width:100%;min-height:36px;text-align:left!important;padding:9px 12px;background:#16263f;border-radius:8px;color:#e8effe}
+#more-tabs .more-list button[aria-pressed=true]{background:#304e8b}
+#more-tabs .mode-choice{display:flex;align-items:center;gap:7px;margin:5px 0 0;padding:8px 4px;color:#d8e2fa;font-size:.78rem}
+#more-tabs .mode-choice input{accent-color:var(--aqua);width:auto}
+.micro-help{font-size:.84rem;color:var(--muted);line-height:1.45;margin:8px 0 13px}
+.engine-install,.create-more,.danger-zone{border:1px solid #6778a44c;border-radius:11px;padding:10px 12px;margin:12px 0;background:#0b172a8c}
+.engine-install summary,.create-more summary,.danger-zone summary{cursor:pointer;font-weight:650}
+.engine-install[open]>summary,.create-more[open]>summary{margin-bottom:11px}
+.danger-zone{margin-top:10px;border-color:#b35a6d35}
+.danger-zone summary{color:#c7b5bf;font-weight:500;font-size:.8rem}
+body:not(.expert-mode) .expert-only{display:none!important}
+.check-result{padding:4px 0;margin:12px 0}
+.check-result[hidden]{display:none}
+.check-result p{font-size:.83rem;line-height:1.35;margin:5px 0;padding:7px 10px;border-radius:8px;background:#12253d}
+.check-result .check-ok{color:#9aebd4;border-left:3px solid #39c59b}
+.check-result .check-warn{color:#ffe1a4;border-left:3px solid #e8ad48}
+.check-result .check-error{color:#ffc7cc;border-left:3px solid #ef7585}
+[data-section="help"] details,[data-section="account"] details,[data-section="network"] details{margin:8px 0;padding:10px 12px;border-radius:10px;background:#101e35}
+[data-section="help"] summary,[data-section="account"] summary,[data-section="network"] summary{cursor:pointer;font-weight:600;font-size:.9rem}
+[data-section="help"] p{font-size:.84rem;margin:8px 0 1px}
+[data-section="help"] button{margin-top:12px}
+#addons-content>:not(:last-child){margin-bottom:10px}
+@media(max-width:980px){#world-tabs{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:650px){#world-tabs{grid-template-columns:repeat(3,minmax(0,1fr))}#world-tabs button{min-height:46px;font-size:.7rem}#more-tabs summary{min-height:46px}#world-tabs .tab-icon{margin-bottom:2px!important}}

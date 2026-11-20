@@ -31,6 +31,14 @@ jobs:
       - name: Verificar código
         run: go vet ./...
 
+      - name: Validar interface e navegação
+        shell: pwsh
+        run: |
+          node --check ui/app.js
+          node --check ui/language.js
+          node --check ui/unified.js
+          node scripts/verify-ui.cjs
+
       - name: Compilar aplicativo
         run: go build -trimpath -ldflags="-H=windowsgui -s -w" -o dist/Mundo-Nexus.exe .
 

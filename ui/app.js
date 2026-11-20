@@ -143,6 +143,11 @@ function select(server) {
   $("eula").hidden = server.engine !== "java";
   $("official").hidden = server.engine !== "bedrock";
   $("access-edit").hidden=server.engine!=="bedrock";
+  $("player-add-form").hidden=server.engine!=="bedrock";
+  $("people-search").hidden=server.engine!=="bedrock";
+  $("people-java-tip").hidden=server.engine==="bedrock";
+  $("addons-message").textContent=server.engine==="bedrock"?"Use add-ons e pacotes Bedrock."
+    :server.engine==="both"?"Use plugins do Paper.":"Use mods e plugins compatíveis com o motor.";
   $("internal-packs").hidden=server.engine!=="bedrock";
   $("internal-packs").open=false;
   $("internal-list").replaceChildren();
@@ -191,6 +196,7 @@ function engineTip() {
   $("memory-label").hidden = engine === "bedrock";
   $("create-bedrock").hidden=engine!=="bedrock";
   $("world-template-picker").hidden=engine!=="bedrock";
+  $("create-more").hidden=engine!=="bedrock";
   form.elements.port.value = ["java","both"].includes(engine) ? "25565" : "19132";
   if (host?.availableMemory) {
     form.elements.memory.value = Math.min(4096, Math.max(512, Math.floor(host.availableMemory / 2 / 256) * 256));
@@ -238,19 +244,21 @@ async function refresh() {
     drawHealth(server,data);
     $("access-edit").disabled = !["parado","falhou"].includes(data.state);
     $("state").textContent = !data.installed ? t("Motor pendente") : t(data.state);
+    if (!data.installed) $("engine-install").open = true;
     $("start").disabled = (!data.installed && server.engine!=="bedrock") || !["parado", "falhou"].includes(data.state);
     $("stop").disabled = !["iniciando", "online"].includes(data.state);
     $("restart").disabled = data.state !== "online";
     $("force").hidden = data.state !== "encerrando";
     $("uptime").textContent = data.seconds ? Math.floor(data.seconds / 60) + t(" min em execução") : "";
     $("overview-title").textContent = data.state==="online"
-      ? "Seu mundo está recebendo jogadores"
-      : !data.installed ? "Instale o motor do mundo" : "Prepare seu mundo";
+      ? "Servidor online"
+      : !data.installed ? "Prepare o motor" : "Pronto para iniciar";
     $("overview-status").textContent = data.state==="online"
-      ? "Mundo online · "+(data.players??0)+"/"+server.players+" jogadores · use o painel de comandos para administrar em tempo real."
-      : "Mundo "+t(data.state)+" · ajuste o mundo, prepare jogadores ou inicie quando estiver pronto.";
+      ? (data.players??0)+"/"+server.players+" jogadores conectados."
+      : !data.installed ? "Abra Mundo e prepare o motor." : "Toque em Iniciar para jogar.";
     fullLogs = data.logs || [];
     renderLogs();
+    if (document.querySelector('[data-tab="console"][aria-pressed="true"]')) explainRecentError();
     renderPregeneration(data.pregeneration);
   } catch (error) {
     notice(error.message, true);
@@ -324,9 +332,19 @@ $("new").addEventListener("click", showCreate);
 form.elements.engine.addEventListener("change", engineTip);
 $("world-template").addEventListener("change",applyWorldTemplate);
 $("addon-folder").addEventListener("change", updateAddonTip);
-$("start").addEventListener("click", () => {
-  if (selected?.engine==="bedrock" && (!currentStatus.installed || !currentStatus.access || currentStatus.accessWarning)) openPreparation(true);
-  else action("start");
+$("start").addEventListener("click", async () => {
+  if (selected?.engine==="bedrock" && (!currentStatus.installed || !currentStatus.access || currentStatus.accessWarning)) {
+    openPreparation(true);
+    return;
+  }
+  const server=selected;
+  const checked=await verifyServer("preflight-result");
+  if (server!==selected) return;
+  if (checked?.ready) action("start");
+  else if (checked) {
+    chooseTab("all");
+    notice("Confira a verificação antes de iniciar.",true);
+  }
 });
 $("stop").addEventListener("click", () => action("stop"));
 $("restart").addEventListener("click", () => action("restart"));
@@ -812,7 +830,9 @@ function chooseTab(name) {
     tab.setAttribute("aria-pressed", String(tab.dataset.tab === name));
   }
   if (name==="people" && selected) refreshPeople(selected);
-  if (name==="details" && selected) refreshMetrics(selected);
+  if ((name==="automation" || name==="all") && selected) refreshMetrics(selected);
+  if (name==="console") {$("console-details").open=true;explainRecentError();}
+  $("more-tabs").open = ["network","automation","account","help"].includes(name);
   for (const card of document.querySelectorAll("[data-section]")) {
     card.hidden = card.dataset.section !== name;
   }
@@ -824,13 +844,13 @@ for (const button of document.querySelectorAll("[data-go-tab]")) {
   button.addEventListener("click", () => chooseTab(button.dataset.goTab));
 }
 $("open-console").addEventListener("click", () => {
-  chooseTab("details");
+  chooseTab("console");
   $("console-details").open=true;
   $("command").focus();
 });
 // Commands are operational controls, so keep them in Controle rather than
 // hiding them inside the player list.
-document.querySelector('[data-section="details"]').append($("console-details"));
+document.querySelector('[data-section="console"]').append($("console-details"));
 for (const field of ["viewDistance","tickDistance"]) {
   settingsForm.elements[field].addEventListener("input", () => {
     $(field==="viewDistance"?"view-distance-output":"tick-distance-output").value=settingsForm.elements[field].value+" chunks";
