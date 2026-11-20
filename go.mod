@@ -1,4 +1,4 @@
-module mundonarede
+module mundonexus
 
 go 1.25
 

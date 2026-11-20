@@ -2,7 +2,7 @@
 ; sem UAC, e o atalho permanece estável no Menu Iniciar.
 #define AppName "Mundo Nexus"
 #ifndef AppVersion
-  #define AppVersion "0.4.3"
+  #define AppVersion "0.4.5"
 #endif
 #define AppPublisher "Mundo Nexus"
 #define AppExeName "Mundo-Nexus.exe"
@@ -11,7 +11,9 @@
 #endif
 
 [Setup]
-AppId={{8CA2CE45-4CE7-4D90-B64F-39A0A36A373E}
+; New identity: the former Mundo na Rede installer remembered the old folder.
+; Keeping a distinct ID lets Mundo Nexus be installed cleanly in its own path.
+AppId={{F894B65B-E3B1-4CF2-A2B7-E8AD2A2DB874}
 AppName={#AppName}
 AppVersion={#AppVersion}
 AppPublisher={#AppPublisher}
@@ -19,7 +21,7 @@ DefaultDirName={localappdata}\Programs\Mundo Nexus
 DefaultGroupName=Mundo Nexus
 DisableProgramGroupPage=yes
 PrivilegesRequired=lowest
-OutputDir=C:\Users\emanu\Documents\Codex\2026-11-18\como-voc\outputs
+OutputDir=..\dist\installer
 OutputBaseFilename=Mundo-Nexus-Setup-v{#AppVersion}
 SetupIconFile=..\ui\icon.ico
 LicenseFile=termos-de-uso.txt

@@ -1,10 +1,10 @@
-# Mundo na Rede
+# Mundo Nexus
 
 Gerenciador independente de servidores Minecraft. Cada instalação executa o próprio motor no aparelho do dono do mundo. O painel abre localmente e os jogadores se conectam diretamente ao endereço LAN do anfitrião. Cada aparelho define sua porta, limite de jogadores e, quando usa Java, o limite de memória da JVM.
 
 ## Política de assinatura de código
 
-As versões oficiais para Windows são compiladas a partir deste repositório público pela [automação de build](.github/workflows/build-windows.yml) e publicadas pela equipe do Mundo na Rede. Quando a inscrição for aprovada, a assinatura de código gratuita será fornecida por SignPath.io, com certificado da SignPath Foundation.
+As versões oficiais para Windows são compiladas a partir deste repositório público pela [automação de build](.github/workflows/build-windows.yml) e publicadas pela equipe do Mundo Nexus. Quando a inscrição for aprovada, a assinatura de código gratuita será fornecida por SignPath.io, com certificado da SignPath Foundation.
 
 - **Responsável por alterações e revisões:** [emanuelfaustino-spec](https://github.com/emanuelfaustino-spec), proprietário e mantenedor deste repositório. Contribuições externas devem ser revisadas antes de serem incorporadas.
 - **Responsável por aprovar assinaturas de lançamento:** [emanuelfaustino-spec](https://github.com/emanuelfaustino-spec). Cada lançamento assinado será aprovado manualmente.
@@ -12,12 +12,12 @@ As versões oficiais para Windows são compiladas a partir deste repositório p�
 
 ## Windows
 
-1. Abra o instalador oficial e inicie **Mundo na Rede** pelo menu Iniciar ou pelo atalho criado. O painel abre em uma janela própria; o gerenciador e o motor do mundo executam sem exigir uma janela de console aberta.
+1. Abra o instalador oficial e inicie **Mundo Nexus** pelo menu Iniciar ou pelo atalho criado. O painel abre em uma janela própria; o gerenciador e o motor do mundo executam sem exigir uma janela de console aberta.
 2. Crie um perfil **Bedrock oficial**. Consulte a EULA e os termos no link **Obter motor**. Use **Instalar BDS oficial** para baixar da Mojang, ou importe o ZIP oficial que você baixou para Windows.
 3. Clique em **Iniciar**. No Minecraft Bedrock de outro aparelho conectado à sua LAN, adicione o servidor com o IP e a porta exibidos. Caso o firewall peça permissão, escolha a rede privada. Se houver vários IPs no painel, use o da interface conectada à mesma LAN que o jogador.
 4. Para desligar, use **Parar** e aguarde o estado **parado**. Use o console para consultar comandos e logs. Fechar a janela da interface deixa o gerenciador rodando.
 
-O arquivo Windows é para x64. `mundo-na-rede-linux-amd64` também é fornecido para testes no Ubuntu.
+O arquivo Windows é para x64. `mundo-nexus-linux-amd64` também é fornecido para testes no Ubuntu.
 
 ## Android ARM64 com Termux
 
@@ -26,10 +26,10 @@ A edição experimental roda no próprio celular mediante Termux. Instale uma ve
 ```sh
 termux-setup-storage
 pkg install openjdk-21
-mkdir -p ~/mundo-na-rede
-cp ~/storage/downloads/mundo-na-rede-android-arm64 ~/storage/downloads/iniciar-android.sh ~/mundo-na-rede/
-cd ~/mundo-na-rede
-chmod +x mundo-na-rede-android-arm64 iniciar-android.sh
+mkdir -p ~/mundo-nexus
+cp ~/storage/downloads/mundo-nexus-android-arm64 ~/storage/downloads/iniciar-android.sh ~/mundo-nexus/
+cd ~/mundo-nexus
+chmod +x mundo-nexus-android-arm64 iniciar-android.sh
 ./iniciar-android.sh
 ```
 
@@ -43,7 +43,7 @@ Abra o URL impresso no Termux se o painel não abrir automaticamente. Crie um pe
 - Backup ZIP do diretório do motor com o servidor parado, para restaurar no mesmo tipo de perfil e plataforma. O backup pode incluir arquivos privados do servidor, como chaves de identidade. Guarde-o para uso próprio. Limite de 2 GiB por ZIP e 6 GiB descompactados.
 - Importação de configuração e de extensões. Pacotes do Bedrock oficial são registrados no mundo ativo ao iniciar. No PowerNukkitX, pacotes de recursos são copiados para a pasta do motor. Use apenas executáveis, plugins e backups confiáveis.
 - O painel usa `127.0.0.1` e uma chave por sessão. O IP e a porta exibidos para o Minecraft são os do **jogo**, independentes da porta do painel. A instalação não hospeda os mundos de outros donos.
-- Os caminhos padrão de dados são `%AppData%\MundoNaRede` no Windows e `~/.config/MundoNaRede` nos demais sistemas. A opção `-data` permite usar outra pasta. O painel usa a porta local 37654 por padrão.
+- Os caminhos padrão de dados são `%AppData%\MundoNexus` no Windows e `~/.config/MundoNexus` nos demais sistemas. O caminho anterior `%AppData%\MundoNaRede` é reconhecido para migração de dados legados. A opção `-data` permite usar outra pasta. O painel usa a porta local 37654 por padrão.
 
 ## Situação dos recursos de referência
 
@@ -55,11 +55,11 @@ Requer Go 1.25 ou superior. Execute `go build .` para a plataforma atual. Os bin
 
 ## Google Drive em desenvolvimento
 
-Na primeira conexão pelo aplicativo desktop, abra **Conta → Configurar Google Drive neste aplicativo**. Crie no [Google Cloud Console](https://console.cloud.google.com/) um projeto seu, ative a **Google Drive API** e crie um cliente OAuth do tipo **Aplicativo para computador**. Cole o ID e o segredo do cliente no app. Eles são salvos somente na pasta local de dados do Mundo na Rede, nunca no repositório e nunca no backup. Esta etapa é exigida pelo Google para que cada distribuição do aplicativo não compartilhe uma credencial privada.
+Na primeira conexão pelo aplicativo desktop, abra **Conta → Configurar Google Drive neste aplicativo**. Crie no [Google Cloud Console](https://console.cloud.google.com/) um projeto seu, ative a **Google Drive API** e crie um cliente OAuth do tipo **Aplicativo para computador**. Cole o ID e o segredo do cliente no app. Eles são salvos somente na pasta local de dados do Mundo Nexus, nunca no repositório e nunca no backup. Esta etapa é exigida pelo Google para que cada distribuição do aplicativo não compartilhe uma credencial privada.
 
 No Windows e no Linux, defina `MUNDO_GOOGLE_CLIENT_ID` e `MUNDO_GOOGLE_CLIENT_SECRET` no ambiente do aplicativo com um cliente OAuth do tipo Desktop em um projeto Google Cloud com Drive API ativada. Depois abra **Conta**, selecione **Conectar Google** e autorize no navegador. A integração usa `drive.file`. O app reconhece a conta pelo nome e e-mail devolvidos pelo Google. Se a conta for perdida, use o link para a recuperação oficial do Google.
 
-Ao encerrar normalmente um servidor que ficou online, o app cria um ZIP e tenta enviá-lo para a conta conectada. Se a rede falhar, a cópia fica em uma fila local associada àquela conta e o aplicativo tenta novamente enquanto estiver aberto. Para restaurar, encontre os arquivos MundoNaRede no Drive e importe o ZIP em um perfil correspondente. Esta configuração é de desenvolvimento, ainda sem credenciais públicas nem validação com uma conta real. No Android, use o fluxo com rclone abaixo.
+Ao encerrar normalmente um servidor que ficou online, o app cria um ZIP e tenta enviá-lo para a conta conectada. Se a rede falhar, a cópia fica em uma fila local associada àquela conta e o aplicativo tenta novamente enquanto estiver aberto. Para restaurar, encontre os backups antigos identificados como MundoNaRede no Drive e importe o ZIP em um perfil correspondente. Esta configuração é de desenvolvimento, ainda sem credenciais públicas nem validação com uma conta real. No Android, use o fluxo com rclone abaixo.
 
 ## Edições, extensões e pausa por inatividade
 
@@ -67,7 +67,7 @@ Em **Quem vai jogar?**, escolha Bedrock, Java ou Java e Bedrock. O modo misto in
 
 No Bedrock oficial, importe um pacote de recursos, pacote de comportamento ou add-on. O aplicativo lê os manifestos, registra os pacotes importados no mundo e mantém os registros de pacotes que já estavam associados. No Java, os mods e plugins são importados nas respectivas pastas e exigem um motor compatível com o formato. O perfil misto aceita plugins Paper.
 
-Servidores Java compatíveis recebem `pause-when-empty-seconds=900`. A pausa nativa interrompe a simulação de um servidor vazio mantendo a escuta de rede. Ela pode reduzir trabalho de CPU, mantém o mundo na memória e depende do suporte do motor e dos plugins. O Bedrock oficial e o PowerNukkitX ainda não têm essa opção implementada no Mundo na Rede.
+Servidores Java compatíveis recebem `pause-when-empty-seconds=900`. A pausa nativa interrompe a simulação de um servidor vazio mantendo a escuta de rede. Ela pode reduzir trabalho de CPU, mantém o mundo na memória e depende do suporte do motor e dos plugins. O Bedrock oficial e o PowerNukkitX ainda não têm essa opção implementada no Mundo Nexus.
 
 ## Limite de jogadores, extensões e acesso pela internet
 
@@ -81,7 +81,7 @@ Use **Amigos fora da sua rede** para registrar um endereço de jogo já configur
 
 A edição atual usa o cliente rclone no próprio aparelho. Instale com `pkg install rclone`. Execute `rclone config`, crie um remoto chamado `mndrive`, escolha Google Drive e o escopo `drive.file`, e autorize a conta no navegador. O rclone administra a sessão e pode solicitar autorização num computador dependendo do dispositivo. Inicie o app com `MUNDO_DRIVE_REMOTE=mndrive ./iniciar-android.sh` e selecione **Conta → Vincular pasta do Drive**. Use o mesmo remoto nas próximas vezes que abrir o app.
 
-O app grava na pasta `MundoNaRede` do Drive após uma parada normal. Em **Conta**, selecione uma cópia compatível para restaurar no perfil aberto. Pare o servidor antes de restaurar. A restauração mantém a pasta anterior. A desconexão no app mantém as cópias no Drive e o login do rclone no Termux. Com escopo `drive.file`, clientes diferentes podem ter visibilidade diferente. Use o Drive diretamente para baixar cópias antigas ou feitas com outra integração e importe o ZIP manualmente. A lista de restauração no painel inclui arquivos da versão atual identificados pelo tipo de servidor.
+Por compatibilidade, o app ainda grava na pasta histórica `MundoNaRede` do Drive após uma parada normal. Em **Conta**, selecione uma cópia compatível para restaurar no perfil aberto. Pare o servidor antes de restaurar. A restauração mantém a pasta anterior. A desconexão no app mantém as cópias no Drive e o login do rclone no Termux. Com escopo `drive.file`, clientes diferentes podem ter visibilidade diferente. Use o Drive diretamente para baixar cópias antigas ou feitas com outra integração e importe o ZIP manualmente. A lista de restauração no painel inclui arquivos da versão atual identificados pelo tipo de servidor.
 
 ## Primeira partida e restauração no Windows
 

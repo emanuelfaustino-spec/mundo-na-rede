@@ -65,7 +65,7 @@ func (d *driveBackup) pairRemote(ctx context.Context) error {
 	}
 	name := "device-" + randomHex(16) + ".txt"
 	cmd := d.runRclone(ctx, "rcat", d.remotePath(name))
-	cmd.Stdin = strings.NewReader("Mundo na Rede")
+	cmd.Stdin = strings.NewReader("Mundo Nexus")
 	if err := cmd.Run(); err != nil {
 		return errors.New("não foi possível vincular o Google Drive pelo rclone")
 	}

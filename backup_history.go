@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-var localBackupName = regexp.MustCompile(`^mundo-na-rede-[0-9]{8}-[0-9]{6}-[a-f0-9]{6}\.zip$`)
+var localBackupName = regexp.MustCompile(`^(mundo-na-rede|mundo-nexus)-[0-9]{8}-[0-9]{6}-[a-f0-9]{6}\.zip$`)
 
 const backupRetention = 7
 
@@ -37,6 +37,9 @@ func pruneLocalBackups(dir string) error {
 		}
 	}
 	sort.Slice(copies, func(i, j int) bool { return copies[i].date.After(copies[j].date) })
+	if len(copies) <= backupRetention {
+		return nil
+	}
 	for _, old := range copies[backupRetention:] {
 		if err := os.Remove(filepath.Join(dir, old.name)); err != nil && !errors.Is(err, os.ErrNotExist) {
 			return err
@@ -134,7 +137,8 @@ func (d *driveBackup) queueLocalBackup(p Profile, path, name string) error {
 	if err = errors.Join(err, tmp.Close()); err != nil {
 		return err
 	}
-	dest := filepath.Join(queue, "MundoNaRede-"+p.Engine+"-"+p.ID+"-"+strings.TrimPrefix(name, "mundo-na-rede-"))
+	suffix := strings.TrimPrefix(strings.TrimPrefix(name, "mundo-na-rede-"), "mundo-nexus-")
+	dest := filepath.Join(queue, "MundoNaRede-"+p.Engine+"-"+p.ID+"-"+suffix)
 	if err = os.Rename(tmp.Name(), dest); err != nil {
 		return err
 	}

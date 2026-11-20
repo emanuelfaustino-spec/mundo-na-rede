@@ -32,12 +32,12 @@ jobs:
         run: go vet ./...
 
       - name: Compilar aplicativo
-        run: go build -trimpath -ldflags="-H=windowsgui -s -w" -o dist/Mundo-na-Rede.exe .
+        run: go build -trimpath -ldflags="-H=windowsgui -s -w" -o dist/Mundo-Nexus.exe .
 
       - name: Publicar artefato para revisão
         uses: actions/upload-artifact@v4
         with:
-          name: Mundo-na-Rede-Windows-x64
-          path: dist/Mundo-na-Rede.exe
+          name: Mundo-Nexus-Windows-x64
+          path: dist/Mundo-Nexus.exe
           if-no-files-found: error
           retention-days: 14

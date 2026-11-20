@@ -104,6 +104,16 @@ func fetchUpdate() (updateManifest, error) {
 }
 
 func (m *manager) updateAPI(w http.ResponseWriter, r *http.Request) bool {
+	if distributionChannel == "store" {
+		switch {
+		case r.URL.Path == "/api/update" && r.Method == http.MethodGet:
+			writeJSON(w, map[string]any{"available": false, "version": appVersion, "managedByStore": true})
+			return true
+		case r.URL.Path == "/api/update/apply" && r.Method == http.MethodPost:
+			fail(w, errors.New("atualizações desta instalação são gerenciadas pela Microsoft Store"))
+			return true
+		}
+	}
 	switch {
 	case r.URL.Path == "/api/update" && r.Method == http.MethodGet:
 		update, err := fetchUpdate()
@@ -138,11 +148,11 @@ func launchUpdate(update updateManifest) error {
 	if err != nil {
 		return err
 	}
-	dir, err := os.MkdirTemp("", "MundoNaRede-update-")
+	dir, err := os.MkdirTemp("", "MundoNexus-update-")
 	if err != nil {
 		return err
 	}
-	staged := filepath.Join(dir, "Mundo-na-Rede-new.exe")
+	staged := filepath.Join(dir, "Mundo-Nexus-new.exe")
 	response, err := (&http.Client{Timeout: 4 * time.Minute}).Get(update.URL)
 	if err != nil {
 		return err
@@ -165,9 +175,9 @@ func launchUpdate(update updateManifest) error {
 		return closeErr
 	}
 	if !strings.EqualFold(hex.EncodeToString(hash.Sum(nil)), update.SHA256) {
-		return errors.New("a assinatura da atualização não confere")
+		return errors.New("o hash SHA-256 da atualização não confere")
 	}
-	helper := filepath.Join(dir, "Mundo-na-Rede-atualizador.exe")
+	helper := filepath.Join(dir, "Mundo-Nexus-atualizador.exe")
 	self, err := os.Open(target)
 	if err != nil {
 		return err
@@ -203,16 +213,29 @@ func runUpdateHelper() bool {
 	if pid <= 0 || source == "" || target == "" {
 		return true
 	}
-	// On Windows an executable remains locked while the old app is alive. Retrying
-	// the rename is more reliable than os.FindProcess, which cannot report exit there.
+	// The installed binary may still be locked while the previous process exits.
+	if info, err := os.Stat(source); err != nil || !info.Mode().IsRegular() {
+		return true
+	}
 	for i := 0; i < 120; i++ {
-		if err := os.Remove(target); err == nil {
-			if os.Rename(source, target) == nil {
-				_ = exec.Command(target).Start()
-				return true
-			}
+		if err := replaceExecutableWithRollback(source, target); err == nil {
+			_ = exec.Command(target).Start()
+			return true
 		}
 		time.Sleep(500 * time.Millisecond)
 	}
 	return true
+}
+
+// replaceExecutableWithRollback preserves a recoverable copy of the old binary.
+// If the new binary cannot be moved into place, restore the previous version.
+func replaceExecutableWithRollback(source, target string) error {
+	backup := target + ".previous-update-" + randomHex(6)
+	if err := os.Rename(target, backup); err != nil {
+		return err
+	}
+	if err := os.Rename(source, target); err != nil {
+		return errors.Join(err, os.Rename(backup, target))
+	}
+	return nil
 }

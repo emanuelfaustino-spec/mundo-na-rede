@@ -1,6 +1,6 @@
 # Política de Privacidade — Mundo Nexus
 
-Última atualização: 19 de novembro de 2026.
+Última atualização: 20 de novembro de 2026.
 
 ## Dados locais
 
@@ -8,11 +8,13 @@ O Mundo Nexus funciona principalmente no dispositivo do anfitrião. Perfis de se
 
 ## Conexões iniciadas pelo usuário
 
-O aplicativo só se conecta a serviços externos quando uma função é escolhida pelo usuário:
+Na edição tradicional, o aplicativo verifica automaticamente se há atualizações no canal público do GitHub quando o painel é iniciado. A verificação pode transmitir dados técnicos de conexão, como o endereço IP, ao serviço consultado. A edição distribuída pela Microsoft Store utiliza o mecanismo de atualização da própria loja, sem acionar o atualizador direto do aplicativo.
 
-- baixar ou atualizar o aplicativo, ou baixar um motor de servidor;
+Outras conexões externas ocorrem quando o usuário utiliza funções que dependem delas:
+
+- baixar motores ou componentes de servidor;
 - consultar o catálogo Modrinth;
-- conectar uma conta Google Drive e enviar/restaurar backups;
+- conectar uma conta Google Drive e enviar/restaurar backups (inclusive as cópias automáticas após a autorização);
 - abrir links oficiais no navegador.
 
 Na integração com Google Drive, a autorização é feita pelo fluxo OAuth do Google. O token de acesso e os dados básicos de identificação devolvidos pela conta ficam somente na área local de dados do aplicativo. Backups só são enviados para a conta que o próprio usuário autorizar.

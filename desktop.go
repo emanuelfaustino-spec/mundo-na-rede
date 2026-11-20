@@ -3,11 +3,15 @@ package main
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 
 	webview2 "github.com/jchv/go-webview2"
 )
 
 func openWindowsPanel(url string) {
+	// WebView2 uses COM and its window message loop must stay on one OS thread.
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
 	data, _ := os.UserCacheDir()
 	w := webview2.NewWithOptions(webview2.WebViewOptions{
 		DataPath: filepath.Join(data, "MundoNexus", "webview"), AutoFocus: true,

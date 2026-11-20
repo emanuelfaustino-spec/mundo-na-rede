@@ -14,7 +14,7 @@ Para jogadores da mesma rede local, use apenas redes confiáveis. Para permitir 
 Se você optar por conectar o Google Drive, os backups criados pelo aplicativo serão enviados à sua própria conta Google. Você pode desconectar a conta pelo aplicativo a qualquer momento. O uso do Drive também está sujeito aos termos e à política de privacidade do Google.
 
 5. ATUALIZAÇÕES
-O aplicativo pode consultar uma fonte pública de atualizações. Você pode escolher instalar uma atualização quando ela for encontrada ou ativar as atualizações automáticas. Atualizações não devem apagar seus mundos, mas é recomendável manter backups antes de atualizar.
+Na edição tradicional, o aplicativo consulta o canal de atualizações e permite instalar novas versões manual ou automaticamente. A edição da Microsoft Store recebe atualizações pelo próprio mecanismo da loja. O aplicativo procura preservar os mundos durante as atualizações, mas é recomendável fazer backups antes de atualizar.
 
 6. SOFTWARE DE TERCEIROS
 Minecraft, servidores Bedrock/Java, add-ons, mods e plugins possuem seus próprios termos e licenças. Use apenas arquivos obtidos de fontes confiáveis e compatíveis com a sua versão do jogo.

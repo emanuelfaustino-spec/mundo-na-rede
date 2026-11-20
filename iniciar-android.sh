@@ -5,4 +5,4 @@ if ! command -v java >/dev/null; then
   echo 'Instale o Java no Termux com: pkg install openjdk-21'
   exit 1
 fi
-exec "$launcher/mundo-na-rede-android-arm64" "$@"
+exec "$launcher/mundo-nexus-android-arm64" "$@"

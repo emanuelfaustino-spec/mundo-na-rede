@@ -25,7 +25,7 @@ func downloadRequest(client *http.Client, ctx context.Context, address string) (
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("User-Agent", "MundoNaRede/development (local Minecraft server manager)")
+	req.Header.Set("User-Agent", "MundoNexus/development (local Minecraft server manager)")
 	response, err := client.Do(req)
 	if err != nil {
 		return nil, err

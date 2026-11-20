@@ -5,12 +5,12 @@ O Mundo Nexus será distribuído pela Microsoft Store como um pacote **MSIX x64*
 ## Antes de empacotar
 
 1. Entre no [Partner Center](https://partner.microsoft.com/dashboard/home) com a conta Microsoft que será dona do aplicativo.
-2. Reserve o nome **Mundo Nexus** em `Apps and games`.
+2. A reserva **Mundo Nexus** já foi identificada no Partner Center com a ID `9N0WMH45BN3C`.
 3. Copie da página de identidade do produto os três valores abaixo:
    - `Package/Identity name`;
    - `Publisher`;
    - `Publisher display name`.
-4. Substitua somente os três marcadores `__STORE_*__` em `AppxManifest.template.xml` pelos valores copiados.
+4. Execute `store/build-msix.ps1` com os três valores oficiais. O script preenche os marcadores `__STORE_*__` durante a geração, sem modificar o manifesto modelo. Consulte `IDENTIDADE-STORE.md` para os valores verificados.
 
 Os valores da identidade são atribuídos pela Microsoft. Não devem ser inventados nem reutilizados de outro produto.
 

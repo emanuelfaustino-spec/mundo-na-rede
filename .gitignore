@@ -8,6 +8,7 @@ backups/
 # Compilações e arquivos do sistema
 *.exe
 *.dll
+dist/
 mundo-na-rede
 mundo-na-rede-*
 .DS_Store
