@@ -1,10 +1,10 @@
-# Política de Privacidade — Mundo na Rede
+# Política de Privacidade — Mundo Nexus
 
 Última atualização: 19 de novembro de 2026.
 
 ## Dados locais
 
-O Mundo na Rede funciona principalmente no dispositivo do anfitrião. Perfis de servidores, configurações, mundos, logs e backups ficam na pasta local de dados do aplicativo. O projeto não possui um servidor próprio para receber esses dados e não usa publicidade ou telemetria comportamental.
+O Mundo Nexus funciona principalmente no dispositivo do anfitrião. Perfis de servidores, configurações, mundos, logs e backups ficam na pasta local de dados do aplicativo. O projeto não possui um servidor próprio para receber esses dados e não usa publicidade ou telemetria comportamental.
 
 ## Conexões iniciadas pelo usuário
 
@@ -19,7 +19,7 @@ Na integração com Google Drive, a autorização é feita pelo fluxo OAuth do G
 
 ## Rede do jogo
 
-Quando um mundo é iniciado, o dispositivo do anfitrião aceita conexões de jogadores na rede escolhida pelo anfitrião. O endereço de jogo é mostrado localmente no painel. O Mundo na Rede não oferece, por si só, um serviço intermediário de hospedagem, túnel ou coleta dos dados dos jogadores.
+Quando um mundo é iniciado, o dispositivo do anfitrião aceita conexões de jogadores na rede escolhida pelo anfitrião. O endereço de jogo é mostrado localmente no painel. O Mundo Nexus não oferece, por si só, um serviço intermediário de hospedagem, túnel ou coleta dos dados dos jogadores.
 
 ## Controle do usuário
 

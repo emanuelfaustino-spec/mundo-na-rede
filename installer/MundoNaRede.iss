@@ -2,7 +2,7 @@
 ; sem UAC, e o atalho permanece estável no Menu Iniciar.
 #define AppName "Mundo Nexus"
 #ifndef AppVersion
-  #define AppVersion "0.4.1"
+  #define AppVersion "0.4.3"
 #endif
 #define AppPublisher "Mundo Nexus"
 #define AppExeName "Mundo-Nexus.exe"
@@ -37,6 +37,10 @@ Name: "desktopicon"; Description: "Criar atalho na área de trabalho"; GroupDesc
 
 [Files]
 Source: "{#SourceExe}"; DestDir: "{app}"; DestName: "{#AppExeName}"; Flags: ignoreversion
+
+[InstallDelete]
+; Remove the Start menu entry used by versions released before the rename.
+Type: files; Name: "{userprograms}\Mundo na Rede.lnk"
 
 [Icons]
 Name: "{autoprograms}\Mundo Nexus"; Filename: "{app}\{#AppExeName}"; WorkingDir: "{app}"; IconFilename: "{app}\{#AppExeName}"
