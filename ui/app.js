@@ -69,7 +69,7 @@ async function request(path, options = {}) {
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
     const message=response.status===403
-      ? "A sessão local mudou. Feche esta janela e abra Mundo na Rede novamente."
+      ? "A sessão local mudou. Feche esta janela e abra Mundo Nexo novamente."
       : (t(error.error) || t("Falha na operação."));
     notice(message, true);
     throw new Error(message);
@@ -1266,14 +1266,14 @@ async function checkForUpdate() {
     const apply=async()=>{
       const result=await fetch("/api/update/apply",{method:"POST",headers:{"X-Local-Key":key||""}});
       if(!result.ok) throw new Error((await result.json().catch(()=>({}))).error||"Não foi possível baixar a atualização.");
-      notice("Atualizando o Mundo na Rede… o aplicativo será reaberto.");
+      notice("Atualizando o Mundo Nexo… o aplicativo será reaberto.");
       // The desktop shell is an Edge app window. Closing this window before
       // the helper restarts the executable avoids leaving a stale panel open.
       setTimeout(()=>window.close(),180);
     };
     if(automatic){await apply();return;}
     $("update-title").textContent="Versão "+update.version+" disponível";
-    $("update-notes").textContent=update.notes||"Melhorias e correções para o Mundo na Rede.";
+    $("update-notes").textContent=update.notes||"Melhorias e correções para o Mundo Nexo.";
     $("auto-update-choice").checked=false;
     $("update-dialog").showModal();
     $("update-later").onclick=()=>{

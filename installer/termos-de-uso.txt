@@ -2,7 +2,7 @@ TERMOS DE USO — MUNDO NA REDE
 Última atualização: novembro de 2026
 
 1. O QUE É O APLICATIVO
-Mundo na Rede é uma ferramenta para configurar e hospedar mundos/servidores de Minecraft neste dispositivo. Ele não é afiliado, aprovado nem patrocinado pela Mojang Studios ou pela Microsoft.
+Mundo Nexo é uma ferramenta para configurar e hospedar mundos/servidores de Minecraft neste dispositivo. Ele não é afiliado, aprovado nem patrocinado pela Mojang Studios ou pela Microsoft.
 
 2. RESPONSABILIDADE PELO MUNDO E PELOS DADOS
 Você é responsável pelos mundos, configurações, jogadores convidados e backups que criar. Faça cópias de segurança antes de importar, restaurar, excluir ou atualizar um servidor. A exclusão de um servidor ou backup pode ser permanente.

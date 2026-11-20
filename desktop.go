@@ -15,7 +15,7 @@ func openWindowsPanel(url string) {
 		edge := filepath.Join(root, "Microsoft", "Edge", "Application", "msedge.exe")
 		if _, err := os.Stat(edge); err == nil {
 			// App mode removes the browser chrome. Release builds use the Windows
-			// GUI subsystem, so launching Mundo na Rede never needs a console.
+			// GUI subsystem, so launching Mundo Nexo never needs a console.
 			if err = exec.Command(edge, "--app="+url, "--no-first-run", "--disable-features=TranslateUI").Start(); err == nil {
 				return
 			}
