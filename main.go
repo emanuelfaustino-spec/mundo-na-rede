@@ -76,6 +76,7 @@ type process struct {
 	sample        cpuSample
 	state         string
 	lines         []string
+	generation    *generationJob
 }
 type manager struct {
 	root     string
@@ -309,6 +310,15 @@ func (m *manager) api(w http.ResponseWriter, r *http.Request) {
 		m.updateWorld(w, r, p, active)
 		return
 	}
+	if action == "pregeneration" && r.Method == "GET" {
+		if proc == nil || proc.generation == nil {
+			writeJSON(w, map[string]any{"state": "idle"})
+		} else {
+			job := proc.generation
+			writeJSON(w, map[string]any{"state": job.State, "radius": job.Radius, "total": job.Total, "completed": job.Completed, "started": job.Started})
+		}
+		return
+	}
 	if r.Method == "GET" {
 		if action == "extensions" {
 			items, err := listExtensions(game, p.Engine, r.URL.Query().Get("advanced") == "1")
@@ -370,6 +380,10 @@ func (m *manager) api(w http.ResponseWriter, r *http.Request) {
 		}
 		_, engineError := m.command(p, game)
 		result := map[string]any{"state": state, "logs": lines, "seconds": seconds, "installed": engineError == nil}
+		if proc != nil && proc.generation != nil {
+			job := proc.generation
+			result["pregeneration"] = map[string]any{"state": job.State, "radius": job.Radius, "total": job.Total, "completed": job.Completed, "started": job.Started}
+		}
 		if p.Engine == "bedrock" {
 			mode, players := bedrockAccess(game)
 			version, _ := os.ReadFile(filepath.Join(game, ".mnr-engine"))
@@ -497,6 +511,25 @@ func (m *manager) api(w http.ResponseWriter, r *http.Request) {
 			err = readErr
 		} else {
 			err = sendCommand(proc, strings.TrimSpace(string(data)))
+		}
+	case "pregeneration":
+		if p.Engine != "bedrock" || !active || proc.state != "online" {
+			err = errors.New("inicie um mundo Bedrock e aguarde ele ficar online para pré-gerar chunks")
+			break
+		}
+		var input struct {
+			Radius int `json:"radius"`
+		}
+		if decodeErr := json.NewDecoder(http.MaxBytesReader(w, r.Body, 1024)).Decode(&input); decodeErr != nil {
+			err = decodeErr
+		} else {
+			err = m.startPregeneration(proc, input.Radius)
+		}
+	case "pregeneration-cancel":
+		if proc == nil || proc.generation == nil || proc.generation.State != "running" {
+			err = errors.New("não há pré-geração em andamento")
+		} else {
+			close(proc.generation.Cancel)
 		}
 	default:
 		http.NotFound(w, r)

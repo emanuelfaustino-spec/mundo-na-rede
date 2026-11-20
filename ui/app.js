@@ -251,12 +251,36 @@ async function refresh() {
       : "Mundo "+t(data.state)+" · ajuste o mundo, prepare jogadores ou inicie quando estiver pronto.";
     fullLogs = data.logs || [];
     renderLogs();
+    renderPregeneration(data.pregeneration);
   } catch (error) {
     notice(error.message, true);
   } finally {
     refreshing = false;
   }
 }
+function renderPregeneration(job) {
+  const panel=$("pregeneration-panel");
+  if (!panel) return;
+  panel.hidden=selected?.engine!=="bedrock";
+  if (panel.hidden) return;
+  const radius=Number($("pregeneration-radius").value);
+  const points=(Math.floor((radius*2)/8)+1)**2;
+  $("pregeneration-radius-output").value=radius+" chunks · "+(radius*16)+" blocos";
+  $("pregeneration-estimate").textContent=points+" áreas de 8 × 8 chunks · cerca de "+Math.ceil(points*1.5/60)+" min. O mundo precisa estar online; reduzir o raio evita travamentos.";
+  const running=job?.state==="running";
+  $("pregeneration-start").disabled=running || currentStatus.state!=="online";
+  $("pregeneration-cancel").hidden=!running;
+  if (!job || job.state==="idle") $("pregeneration-status").textContent=currentStatus.state==="online"?"Pronto para carregar terreno ao redor do spawn.":"Inicie o mundo para carregar chunks.";
+  else $("pregeneration-status").textContent=({running:"Carregando "+job.completed+" de "+job.total+" áreas…",completed:"Região carregada. O terreno visitado ficou salvo no mundo.",cancelled:"Pré-geração cancelada; os chunks já visitados permanecem salvos.",stopped:"O mundo foi parado antes de concluir.",failed:"Não foi possível enviar uma área ao Bedrock; confira o console."})[job.state]||job.state;
+}
+$("pregeneration-radius").addEventListener("input",()=>renderPregeneration(currentStatus.pregeneration));
+$("pregeneration-start").addEventListener("click",()=>{
+  if (!selected) return;
+  const radius=Number($("pregeneration-radius").value);
+  if (!confirm("Carregar "+radius+" chunks ao redor do spawn? Isso pode deixar o servidor mais lento durante o processo.")) return;
+  action("pregeneration",JSON.stringify({radius}));
+});
+$("pregeneration-cancel").addEventListener("click",()=>action("pregeneration-cancel"));
 async function perform(callback) {
   if (pending) return;
   pending = true;

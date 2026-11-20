@@ -166,4 +166,6 @@ select,input{max-width:100%;min-width:0}
   .brand{min-width:0}
   .brand strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 }
+.pregeneration{margin:16px 0;padding:16px;border:1px solid #5edbca52;border-radius:16px;background:linear-gradient(120deg,#102d3a9c,#161945a8)}
+.pregeneration h3{margin:0 0 5px;font-size:1rem}.pregeneration label{max-width:520px;margin:13px 0 4px}.pregeneration input{width:100%;padding:0;accent-color:var(--aqua)}
 
