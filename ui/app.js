@@ -193,6 +193,12 @@ function applyWorldTemplate() {
   form.elements.difficulty.value=template.difficulty;
   form.elements.players.value=template.players;
   form.elements.preset.value=template.preset;
+  form.elements.allowCheats.checked=false;
+  form.elements.forceGamemode.checked=template.mode==="hardcore";
+  form.elements.texturePackRequired.checked=false;
+  form.elements.lanVisibility.checked=true;
+  form.elements.defaultPermission.value="member";
+  drawBedrockRules("create-bedrock-rules-list",template.rules);
   $("create-capacity").textContent=capacityHint();
 }
 function renderLogs() {
@@ -226,6 +232,9 @@ async function refresh() {
     $("restart").disabled = data.state !== "online";
     $("force").hidden = data.state !== "encerrando";
     $("uptime").textContent = data.seconds ? Math.floor(data.seconds / 60) + t(" min em execução") : "";
+    $("overview-title").textContent = data.state==="online"
+      ? "Seu mundo está recebendo jogadores"
+      : !data.installed ? "Instale o motor do mundo" : "Prepare seu mundo";
     $("overview-status").textContent = data.state==="online"
       ? "Mundo online · "+(data.players??0)+"/"+server.players+" jogadores · use o painel de comandos para administrar em tempo real."
       : "Mundo "+t(data.state)+" · ajuste o mundo, prepare jogadores ou inicie quando estiver pronto.";
@@ -263,12 +272,9 @@ form.addEventListener("submit", (event) => {
     const data = Object.fromEntries(new FormData(form));
     for (const key of ["port", "memory", "players"]) data[key] = Number(data[key]);
     if (data.engine==="bedrock") {
-      const template=worldTemplates[$("world-template").value]||worldTemplates.custom;
-      data.rules=template.rules;
-      data.allowCheats=false;
-      data.forceGamemode=data.mode==="hardcore";
-      data.defaultPermission="member";
-      data.lanVisibility=true;
+      for (const field of ["allowCheats","forceGamemode","texturePackRequired","lanVisibility"]) data[field]=form.elements[field].checked;
+      data.rules={};
+      for (const input of document.querySelectorAll("#create-bedrock-rules-list input[data-rule]")) data.rules[input.dataset.rule]=input.checked;
     }
     const server = await (await request("", { method: "POST", body: JSON.stringify(data) })).json();
     host.servers.push(server);
@@ -621,15 +627,16 @@ const bedrockRuleOptions = [
   ["sendcommandfeedback","Retorno de comandos","Mostra o resultado de comandos administrativos."],
 ];
 const bedrockRuleDefaults = new Set(["dodaylightcycle","doweathercycle","naturalregeneration","showdeathmessages","domobspawning","mobgriefing","dofiretick","firedamage","falldamage","drowningdamage","freezedamage","domobloot","doentitydrops","dotiledrops","tntexplodes","sendcommandfeedback"]);
-function drawBedrockRules(server) {
-  const list=$("bedrock-rules-list");
+function drawBedrockRules(listID, values={}) {
+  const list=$(listID);
+  if (!list) return;
   list.replaceChildren();
   for (const [key,label,help] of bedrockRuleOptions) {
     const option=document.createElement("label");
     option.className="rule-toggle";
     const input=document.createElement("input");
     input.type="checkbox"; input.dataset.rule=key;
-    input.checked=server.rules && key in server.rules ? Boolean(server.rules[key]) : bedrockRuleDefaults.has(key);
+    input.checked=values && key in values ? Boolean(values[key]) : bedrockRuleDefaults.has(key);
     const copy=document.createElement("span");
     const title=document.createElement("strong"); title.textContent=label;
     const detail=document.createElement("small"); detail.textContent=help;
@@ -649,7 +656,7 @@ $("world-edit").addEventListener("click", () => {
     settingsForm.elements.texturePackRequired.checked=Boolean(selected.texturePackRequired);
     settingsForm.elements.lanVisibility.checked=selected.lanVisibilitySet===false?true:selected.lanVisibility!==false;
     settingsForm.elements.defaultPermission.value=selected.defaultPermission||"member";
-    drawBedrockRules(selected);
+    drawBedrockRules("settings-bedrock-rules-list",selected.rules);
   }
   $("address-java").hidden = !["java","both"].includes(selected.engine);
   $("address-bedrock").hidden = selected.engine === "java";
@@ -672,7 +679,7 @@ settingsForm.addEventListener("submit", async (event) => {
   if (server.engine==="bedrock") {
     for (const field of ["allowCheats","forceGamemode","texturePackRequired","lanVisibility"]) values[field]=settingsForm.elements[field].checked;
     values.rules={};
-    for (const input of document.querySelectorAll("#bedrock-rules-list input[data-rule]")) values.rules[input.dataset.rule]=input.checked;
+    for (const input of document.querySelectorAll("#settings-bedrock-rules-list input[data-rule]")) values.rules[input.dataset.rule]=input.checked;
   }
   for (const key of ["port", "players", "memory", "viewDistance", "tickDistance"]) values[key] = Number(values[key]);
   const button = settingsForm.querySelector("button");
@@ -1114,15 +1121,6 @@ async function refreshMetrics(server) {
   } catch {}
 }
 
-function drawPregenEstimate() {
-  const radius=Math.max(100,Math.min(2000,Number($("pregenerate-radius").value)||0));
-  const chunks=Math.ceil(Math.PI*radius*radius/256);
-  const minutes=Math.max(1,Math.ceil(chunks/140));
-  $("pregenerate-estimate").textContent=t("Estimativa")+": ~"+chunks.toLocaleString(document.documentElement.lang)+" chunks · "+t("pelo menos")+" ~"+minutes+" min. Espaço e tempo reais variam muito com seed, estruturas e add-ons.";
-	$("pregenerate-radius-value").value=radius.toLocaleString(document.documentElement.lang)+" "+t("blocos");
-}
-$("pregenerate-radius").addEventListener("input",drawPregenEstimate);
-drawPregenEstimate();
 $("economy-mode").addEventListener("click", async () => {
   if (!selected || selected.engine!=="bedrock") return;
   if (!["parado","falhou"].includes(currentStatus.state)) { notice(t("Pare o servidor antes de aplicar o modo econômico."),true); return; }

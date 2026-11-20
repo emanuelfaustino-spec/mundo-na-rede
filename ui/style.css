@@ -124,7 +124,6 @@ body:after{content:"";position:fixed;inset:-28%;z-index:-2;pointer-events:none;o
 .overview-card{background:linear-gradient(120deg,#151a3cd9,#10243dce);border-color:#62d9ce4a}
 .overview-card h2{font-size:1.45rem}.overview-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}.overview-actions button{border-color:#668dd480;background:#0c1933c4}
 #console-details{margin-top:18px;border-top:1px solid #7187b83b;padding-top:15px}#console-details summary{font-size:1rem}
-#pregenerate-plan{display:none}
 
 /* Saúde do mundo: informação útil em vez de uma fila de etiquetas. */
 .health-dock{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:16px 0 14px}
@@ -135,6 +134,9 @@ body:after{content:"";position:fixed;inset:-28%;z-index:-2;pointer-events:none;o
 @keyframes status-pulse{50%{box-shadow:0 0 0 7px #52e4d200;transform:scale(1.08)}}
 .tab-icon{display:grid!important;place-items:center;width:25px;height:25px;margin:0 auto 3px!important;border:1px solid transparent;border-radius:8px;color:#93a0c5}.tab-icon svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}#world-tabs [aria-pressed=true] .tab-icon{color:var(--aqua);background:#58dfcf14;border-color:#5de1d135}
 @media(max-width:760px){.health-dock{grid-template-columns:repeat(2,minmax(0,1fr))}.performance-panel{grid-template-columns:1fr}.performance-panel canvas{max-height:58px}}
+
+/* Camada de simplicidade: uma ação clara, detalhes apenas quando necessários. */
+.card{box-shadow:0 14px 38px #0000002b;background:linear-gradient(135deg,#121b32e8,#0c1327e8)}.hero{background:linear-gradient(118deg,#171b3de8 0%,#10213be8 60%,#123542d8 100%)}.hero:after{opacity:.65}.overview-card{background:linear-gradient(115deg,#14203ad8,#10243bd1)}#world-tabs{background:#091323a8;gap:4px;padding:5px}#world-tabs button{min-height:56px}.overview-actions button{min-height:40px}.control-deck{background:#07112052;border-radius:14px;padding:8px}.danger{margin-top:8px;color:#ffc7d0;border-color:#d65b7166;background:#3e1d2b66}.template-picker{box-shadow:inset 0 1px #8ae8dc17}.template-picker select{background:#0a1429}.bedrock-rules{background:#09122591}.rule-toggle{background:#0c162ab5}@media(max-width:620px){#world-tabs{grid-template-columns:repeat(3,minmax(0,1fr))}.control-deck{border-radius:12px}.overview-actions{display:grid;grid-template-columns:1fr 1fr}.overview-actions button:last-child{grid-column:1/-1}}
 
 /* Lateral compactável e estados visíveis sem abrir cada servidor. */
 .sidebar-tools{display:flex;gap:6px}.server-entry{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px}.server-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.server-state{margin:0;font-size:.68rem;white-space:nowrap;color:#9ca9c5}.server-state[data-state=online]{color:var(--aqua)}.server-state[data-state=encerrando]{color:var(--gold)}.server-state[data-state=falhou]{color:var(--coral)}
