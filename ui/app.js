@@ -539,7 +539,10 @@ $("config-form").addEventListener("submit", async (event) => {
 });
 
 function capacityHint() {
-  return t("Sugestão para começar") + " · " + (host?.recommendedPlayers || 4) + " " + t("jogadores") + ".";
+  const players=host?.recommendedPlayers || 4;
+  const cores=host?.cores || 1;
+  const ram=host?.totalMemory ? (host.totalMemory/1024).toFixed(1)+" GiB RAM" : "RAM disponível";
+  return "Recomendado para este PC · até "+players+" jogadores · "+cores+" núcleos · "+ram;
 }
 function drawPublicAddresses(server) {
   const box = $("public-addresses");

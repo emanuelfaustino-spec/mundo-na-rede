@@ -18,9 +18,9 @@ type packReference struct {
 	Version json.RawMessage `json:"version"`
 }
 type bedrockPack struct {
-	Folder string
-	Path   string
-	Ref    packReference
+	Folders []string
+	Path    string
+	Ref     packReference
 }
 
 func readPack(dir string) (bedrockPack, error) {
@@ -51,17 +51,33 @@ func readPack(dir string) (bedrockPack, error) {
 	for _, module := range manifest.Modules {
 		switch module.Type {
 		case "resources":
-			if out.Folder == "" {
-				out.Folder = "resource_packs"
-			}
+			out.addFolder("resource_packs")
 		case "data", "script":
-			out.Folder = "behavior_packs"
+			out.addFolder("behavior_packs")
 		}
 	}
-	if out.Folder == "" {
+	if len(out.Folders) == 0 {
 		return out, errors.New("nenhum módulo de recursos ou comportamento no manifest.json")
 	}
 	return out, nil
+}
+
+func (p *bedrockPack) addFolder(folder string) {
+	for _, existing := range p.Folders {
+		if existing == folder {
+			return
+		}
+	}
+	p.Folders = append(p.Folders, folder)
+}
+
+func (p bedrockPack) hasFolder(folder string) bool {
+	for _, existing := range p.Folders {
+		if existing == folder {
+			return true
+		}
+	}
+	return false
 }
 func expandNestedPacks(root string) error {
 	entries, err := os.ReadDir(root)
@@ -118,7 +134,7 @@ func installBedrockAddon(src, game, folder string) error {
 		if err != nil {
 			return err
 		}
-		if folder != "auto" && pack.Folder != folder {
+		if folder != "auto" && !pack.hasFolder(folder) {
 			return errors.New("o tipo do pacote não corresponde à seleção")
 		}
 		packs = append(packs, pack)
@@ -138,12 +154,23 @@ func installBedrockAddon(src, game, folder string) error {
 		seen[pack.Ref.ID] = true
 	}
 	for _, pack := range packs {
-		dest := filepath.Join(game, pack.Folder, "mnr-"+pack.Ref.ID)
-		if err = os.MkdirAll(filepath.Dir(dest), 0700); err != nil {
-			return err
-		}
-		if err = replaceWithBackup(pack.Path, dest, "pacote-anterior"); err != nil {
-			return err
+		installed := pack.Path
+		for index, folder := range pack.Folders {
+			dest := filepath.Join(game, folder, "mnr-"+pack.Ref.ID)
+			if err = os.MkdirAll(filepath.Dir(dest), 0700); err != nil {
+				return err
+			}
+			source := installed
+			if index > 0 {
+				source = filepath.Join(filepath.Dir(pack.Path), "pack-copy-"+randomHex(4))
+				if err = copyMissing(installed, source); err != nil {
+					return err
+				}
+			}
+			if err = replaceWithBackup(source, dest, "pacote-anterior"); err != nil {
+				return err
+			}
+			installed = dest
 		}
 	}
 	return nil
