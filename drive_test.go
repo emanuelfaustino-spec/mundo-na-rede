@@ -56,3 +56,13 @@ func TestDriveUploadAndRetry(t *testing.T) {
 		t.Fatalf("got %d requests, wanted 4", requests)
 	}
 }
+
+func TestCloudCopiesToDeleteKeepsShortHistory(t *testing.T) {
+	copies := []cloudCopy{{ID: "new", Modified: "2026-11-20T12:00:00Z"}, {ID: "old", Modified: "2026-11-19T12:00:00Z"}}
+	if got := cloudCopiesToDelete(copies, backupRetention); len(got) != 0 {
+		t.Fatalf("short history deleted %d copies", len(got))
+	}
+	if got := cloudCopiesToDelete(copies, 1); len(got) != 1 || got[0].ID != "old" {
+		t.Fatalf("got %#v, want only old copy", got)
+	}
+}

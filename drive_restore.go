@@ -233,13 +233,26 @@ func (d *driveBackup) retainCloudCopies(ctx context.Context, profileID string) e
 			filtered = append(filtered, copy)
 		}
 	}
-	sort.Slice(filtered, func(i, j int) bool { return filtered[i].Modified > filtered[j].Modified })
-	for _, copy := range filtered[backupRetention:] {
+	for _, copy := range cloudCopiesToDelete(filtered, backupRetention) {
 		if err := d.deleteCopy(ctx, copy.ID); err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+// cloudCopiesToDelete returns only copies older than the requested retention
+// limit.  It is deliberately total for an empty or short list.
+func cloudCopiesToDelete(copies []cloudCopy, keep int) []cloudCopy {
+	if keep < 0 {
+		keep = 0
+	}
+	sorted := append([]cloudCopy(nil), copies...)
+	sort.Slice(sorted, func(i, j int) bool { return sorted[i].Modified > sorted[j].Modified })
+	if keep >= len(sorted) {
+		return nil
+	}
+	return sorted[keep:]
 }
 
 func (m *manager) restoreCloud(r *http.Request, p Profile, game string) error {

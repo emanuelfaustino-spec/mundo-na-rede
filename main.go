@@ -94,6 +94,29 @@ func randomHex(bytes int) string {
 	}
 	return hex.EncodeToString(key)
 }
+
+// localPanelKey is intentionally kept on this device only.  Keeping it stable
+// means that an already-open app window can reconnect after the executable is
+// updated or restarted; a fresh random key on every launch made that window
+// show the unhelpful "Failed to fetch" message instead.
+func localPanelKey(root string) (string, error) {
+	path := filepath.Join(root, "panel-session.key")
+	if data, err := os.ReadFile(path); err == nil {
+		key := strings.TrimSpace(string(data))
+		if len(key) == 64 {
+			if _, decodeErr := hex.DecodeString(key); decodeErr == nil {
+				return key, nil
+			}
+		}
+	} else if !errors.Is(err, os.ErrNotExist) {
+		return "", err
+	}
+	key := randomHex(32)
+	if err := os.WriteFile(path, []byte(key+"\n"), 0600); err != nil {
+		return "", err
+	}
+	return key, nil
+}
 func (m *manager) dir(id string) string { return filepath.Join(m.root, "servers", id) }
 func (m *manager) load(id string) (Profile, error) {
 	var p Profile
@@ -821,7 +844,11 @@ func main() {
 	if err = os.MkdirAll(filepath.Join(absolute, "servers"), 0700); err != nil {
 		log.Fatal(err)
 	}
-	m := &manager{root: absolute, token: randomHex(32), running: make(map[string]*process), lastRun: make(map[string]time.Time)}
+	token, err := localPanelKey(absolute)
+	if err != nil {
+		log.Fatal(err)
+	}
+	m := &manager{root: absolute, token: token, running: make(map[string]*process), lastRun: make(map[string]time.Time)}
 	done := make(chan struct{})
 	go m.scheduleLoop(done)
 	defer close(done)

@@ -55,13 +55,24 @@ const worldTemplates = {
 };
 
 async function request(path, options = {}) {
-  const response = await fetch("/api/servers" + path, {
-    ...options,
-    headers: { ...options.headers, "X-Local-Key": key || "" },
-  });
+  let response;
+  try {
+    response = await fetch("/api/servers" + path, {
+      ...options,
+      headers: { ...options.headers, "X-Local-Key": key || "" },
+    });
+  } catch (_) {
+    const message="Não foi possível falar com o aplicativo local. Aguarde alguns segundos e recarregue esta janela.";
+    notice(message, true);
+    throw new Error(message);
+  }
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
-    throw new Error(t(error.error) || t("Falha na operação."));
+    const message=response.status===403
+      ? "A sessão local mudou. Feche esta janela e abra Mundo na Rede novamente."
+      : (t(error.error) || t("Falha na operação."));
+    notice(message, true);
+    throw new Error(message);
   }
   return response;
 }

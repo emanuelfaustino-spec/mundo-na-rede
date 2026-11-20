@@ -148,3 +148,22 @@ body:after{content:"";position:fixed;inset:-28%;z-index:-2;pointer-events:none;o
 body.sidebar-collapsed main{grid-template-columns:56px minmax(0,1fr)}body.sidebar-collapsed #server-sidebar h2,body.sidebar-collapsed #servers{display:none}body.sidebar-collapsed #server-sidebar .section-title{justify-content:center;flex-direction:column}body.sidebar-collapsed .sidebar-tools{flex-direction:column}body.sidebar-collapsed #new{font-size:1.45rem}
 @media(max-width:700px){body.sidebar-collapsed main{display:block}body.sidebar-collapsed #server-sidebar{display:none}}
 
+/* Resiliência de layout: rótulos longos nunca devem esconder campos vizinhos. */
+select,input{max-width:100%;min-width:0}
+.create-basics label,.grid label{min-width:0}
+.create-basics select{width:100%;text-overflow:ellipsis}
+@media(max-width:700px){
+  .create-basics{grid-template-columns:1fr!important}
+  .create-basics label,.create-basics #create-capacity{grid-column:1/-1!important}
+  #world-tabs{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .health-dock{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .connection{grid-template-columns:minmax(0,1fr) auto}
+  .connection button:last-child{grid-column:1/-1}
+}
+@media(max-width:390px){
+  .health-dock{grid-template-columns:1fr}
+  .header-actions{gap:4px}
+  .brand{min-width:0}
+  .brand strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+}
+
