@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="pt-BR" translate="no">
-<head><meta charset="utf-8"><meta name="google" content="notranslate"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Mundo Nexus</title><link rel="icon" type="image/png" href="icon.png"><link rel="stylesheet" href="style.css"><script src="language.js" defer></script><script src="app.js" defer></script><script src="unified.js" defer></script><script src="engine-library.js" defer></script></head>
+<head><meta charset="utf-8"><meta name="google" content="notranslate"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Mundo Nexus</title><link rel="icon" type="image/png" href="icon.png"><link rel="stylesheet" href="style.css"><script src="language.js" defer></script><script src="dialogs.js" defer></script><script src="app.js" defer></script><script src="unified.js" defer></script><script src="engine-library.js" defer></script></head>
 <body>
 <header><div class="brand"><span class="brand-orbit">◉</span><div><strong id="brand-name">Mundo Nexus</strong><small id="brand-tagline">seu universo, sua rede</small></div></div><div class="header-actions"><span id="device"></span><label class="sr-only" for="language">Idioma</label><select id="language"><option value="pt">Português</option><option value="en">English</option></select><button id="reload" aria-label="Recarregar painel" title="Recarregar painel">↻</button><button id="motion" aria-label="Reduzir animações" title="Reduzir animações">✦</button><button id="theme" aria-label="Alternar tema" title="Alternar tema claro/escuro">◐</button><button id="account-open" class="account-button" title="Conta e backups no Drive">◌ Conta</button></div></header>
 <main>
@@ -181,4 +181,14 @@
 <p id="config-status" role="status"></p>
 </dialog>
 <input id="file" type="file" hidden>
+<dialog id="nexus-dialog" aria-labelledby="nexus-dialog-title" aria-describedby="nexus-dialog-message">
+ <div class="nexus-dialog-icon" aria-hidden="true">◉</div>
+ <h2 id="nexus-dialog-title">Confirmar</h2>
+ <p id="nexus-dialog-message"></p>
+ <input id="nexus-dialog-input" aria-label="Resposta" autocomplete="off" maxlength="255" hidden>
+ <div class="nexus-dialog-actions">
+  <button id="nexus-dialog-cancel" type="button">Cancelar</button>
+  <button id="nexus-dialog-accept" type="button" class="primary">Confirmar</button>
+ </div>
+</dialog>
 </body></html>

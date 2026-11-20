@@ -2,7 +2,7 @@
 ; sem UAC, e o atalho permanece estável no Menu Iniciar.
 #define AppName "Mundo Nexus"
 #ifndef AppVersion
-  #define AppVersion "0.6.1"
+  #define AppVersion "0.6.2"
 #endif
 #define AppPublisher "Mundo Nexus"
 #define AppExeName "Mundo-Nexus.exe"

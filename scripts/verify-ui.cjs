@@ -21,10 +21,15 @@ for(const id of [
  "schedule-form","engine-tip","install-tip","engine-explainer",
  "official","mixed-install","manual-install","addon-folder","addon-tip","catalog","delete-server"
 ])assert(seen.has(id),"Elemento ausente: "+id);
-for(const name of ["language.js","app.js","unified.js","engine-library.js"])
+for(const name of ["language.js","dialogs.js","app.js","unified.js","engine-library.js"])
  assert(html.includes('src="'+name+'"'),"Script ausente: "+name);
 const app=fs.readFileSync(path.join(root,"ui","app.js"),"utf8");
 const unified=fs.readFileSync(path.join(root,"ui","unified.js"),"utf8");
+for(const id of ["nexus-dialog","nexus-dialog-title","nexus-dialog-cancel","nexus-dialog-accept"])assert(seen.has(id),"Diálogo sem controle: "+id);
+for(const name of ["app.js","unified.js","engine-library.js"]){
+ const source=fs.readFileSync(path.join(root,"ui",name),"utf8");
+ assert(!/\b(?:window\.)?(?:alert|confirm|prompt)\s*\(/.test(source),"Diálogo nativo remanescente em "+name);
+}
 assert(app.includes('chooseTab("console")'),"Console não usa a aba independente");
 assert(unified.includes("verifyServer"),"Verificação local ausente");
 assert(!app.includes("data-section=\"details\""),"Referência antiga à aba Detalhes");

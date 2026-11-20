@@ -1,6 +1,6 @@
 "use strict";
 
-// Engine downloads begin only after the user accepts the official terms.
+// Shared engine library. Only missing components are downloaded.
 async function engineLibraryRequest(path="",options={}){
   const response=await fetch("/api/engines"+path,{
     ...options,
@@ -9,6 +9,17 @@ async function engineLibraryRequest(path="",options={}){
   const data=await response.json().catch(()=>({}));
   if(!response.ok) throw Error(data.error||"Não foi possível consultar a biblioteca.");
   return data;
+}
+const engineNames={bedrock:"Bedrock",paper:"Paper",java:"Java 25"};
+let engineLibraryBusy=false;
+
+function missingEngines(status){
+  if(!status)return [];
+  return [
+    ...(!status.bedrockReady?["bedrock"]:[]),
+    ...(!status.paperReady?["paper"]:[]),
+    ...(status.portableJavaSupported && !status.javaReady?["java"]:[])
+  ];
 }
 
 async function showEngineLibrary(){
@@ -19,62 +30,93 @@ async function showEngineLibrary(){
 
 async function refreshEngineLibrary(){
   const box=$("engines-status");
+  const button=$("engines-prepare");
   try{
-    const state=await engineLibraryRequest();
+    const status=await engineLibraryRequest();
     const lines=[
-      state.bedrockReady?"✓ Bedrock pronto":"• Bedrock ainda não preparado",
-      state.paperReady?"✓ Paper pronto":"• Paper ainda não preparado",
-      state.javaReady?"✓ Java 25 disponível no PC":state.portableJavaSupported?"• Java 25 ainda não preparado":"! Instale Java 25 neste PC para usar Paper"
+      status.bedrockReady?"✓ Bedrock pronto":"• Bedrock ainda não preparado",
+      status.paperReady?"✓ Paper pronto":"• Paper ainda não preparado",
+      status.javaReady?"✓ Java disponível":status.portableJavaSupported?"• Java 25 ainda não preparado":"• Instale Java 25 para usar Paper"
     ];
     box.replaceChildren();
     for(const message of lines){
-      const p=document.createElement("p");p.textContent=message;box.append(p);
+      const row=document.createElement("p");
+      row.textContent=message;
+      box.append(row);
     }
-    $("engines-prepare").disabled=state.bedrockReady && state.paperReady && (state.javaReady || !state.portableJavaSupported);
-    $("engines-prepare").textContent=state.bedrockReady && state.paperReady && (state.javaReady || !state.portableJavaSupported)
-      ?"Motores preparados":"Preparar Bedrock e Java";
-    return state;
-  }catch(error){box.textContent=error.message;return null}
+    const missing=missingEngines(status);
+    button.disabled=engineLibraryBusy||missing.length===0;
+    button.textContent=missing.length===0?"Biblioteca pronta":missing.length===1
+      ?"Preparar "+engineNames[missing[0]]:"Preparar motores";
+    return status;
+  }catch(error){
+    box.textContent=error.message;
+    button.disabled=true;
+    return null;
+  }
 }
 
 $("engines-close").addEventListener("click",()=>$("engines-dialog").close());
 $("create-engine-open").addEventListener("click",showEngineLibrary);
-
 const openLibrary=document.createElement("button");
-openLibrary.type="button";openLibrary.textContent="Biblioteca de motores";
+openLibrary.type="button";
+openLibrary.textContent="Biblioteca de motores";
 openLibrary.id="open-engine-library";
 openLibrary.addEventListener("click",showEngineLibrary);
 $("engine-install").append(openLibrary);
 
 $("engines-prepare").addEventListener("click",async()=>{
-  const message="Você aceita os termos do Minecraft e do Eclipse Temurin e autoriza baixar os componentes oficiais neste PC? Os arquivos serão reutilizados pelos servidores.";
-  if(!confirm(message))return;
+  if(engineLibraryBusy)return;
+  const state=await refreshEngineLibrary();
+  if(!state)return;
+  const missing=missingEngines(state);
+  if(!missing.length)return;
+  const selectedNames=missing.map(kind=>engineNames[kind]).join(", ");
+  const accepted=await nexusConfirm(
+    "Você aceita os termos do Minecraft e do Eclipse Temurin e autoriza preparar "+selectedNames+" neste PC? Os arquivos serão reutilizados pelos servidores.",
+    {title:"Preparar motores",confirmText:"Aceitar e preparar",cancelText:"Cancelar"}
+  );
+  if(!accepted)return;
+  engineLibraryBusy=true;
   const button=$("engines-prepare");
-  button.disabled=true;
   const result=$("engines-result");
-  let failed=0;
-  const current=await refreshEngineLibrary();
-  const items=[["bedrock","Bedrock"],["paper","Paper"]];
-  if(current?.portableJavaSupported)items.push(["java","Java 25"]);
-  for(const [kind,name] of items){
-    result.textContent="Preparando "+name+"…";
-    try{
-      await engineLibraryRequest("/prepare?kind="+kind,{
-        method:"POST",headers:{"X-Accept-Minecraft-Terms":"yes"}
-      });
-    }catch(error){failed++;result.textContent=name+": "+error.message;await new Promise(r=>setTimeout(r,350));}
+  button.disabled=true;
+  result.textContent="";
+  const problems=[];
+  try{
+    for(const kind of missing){
+      result.textContent="Preparando "+engineNames[kind]+"…";
+      result.setAttribute("aria-busy","true");
+      try{
+        await engineLibraryRequest("/prepare?kind="+encodeURIComponent(kind),{
+          method:"POST",
+          headers:{"X-Accept-Minecraft-Terms":"yes"}
+        });
+      }catch(error){
+        problems.push(engineNames[kind]+": "+error.message);
+      }
+      await refreshEngineLibrary();
+    }
+  }finally{
+    engineLibraryBusy=false;
+    result.removeAttribute("aria-busy");
+    const finalStatus=await refreshEngineLibrary();
+    if(problems.length){
+      result.textContent=problems.join("\n");
+      result.classList.add("error");
+    }else{
+      result.classList.remove("error");
+      result.textContent=missingEngines(finalStatus).length===0
+        ?"Biblioteca pronta.":"Alguns motores ainda não estão preparados.";
+    }
   }
-  const status=await refreshEngineLibrary();
-  result.textContent=failed ? "Alguns motores não foram preparados. Confira a conexão e tente novamente."
-    :status?.javaReady?"Biblioteca pronta. Crie seu servidor.":"Motores preparados. Instale Java compatível para servidores Java.";
-  button.disabled=!status || (status.bedrockReady && status.paperReady && (status.javaReady || !status.portableJavaSupported));
 });
 
 setTimeout(async()=>{
   const status=await refreshEngineLibrary();
   if(!status)return;
   const introKey="mundo-nexus-engine-library-intro";
-  if((!status.bedrockReady || !status.paperReady || (!status.javaReady && status.portableJavaSupported)) && !localStorage.getItem(introKey)){
+  if(missingEngines(status).length>0&&!localStorage.getItem(introKey)){
     localStorage.setItem(introKey,"true");
     if(!$("engines-dialog").open)$("engines-dialog").showModal();
   }
