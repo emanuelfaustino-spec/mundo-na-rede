@@ -24,6 +24,7 @@ func openWindowsPanel(url string) {
 	}
 	defer w.Destroy()
 	setNativeTitlebar(w.Window(), "dark")
+	setNativeWindowIcon(w.Window())
 	// Mirror the HTML theme without replacing the native title bar buttons.
 	_ = w.Bind("nexusSetNativeTheme", func(theme string) error {
 		w.Dispatch(func() { setNativeTitlebar(w.Window(), theme) })

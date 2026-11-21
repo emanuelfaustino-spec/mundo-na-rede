@@ -12,7 +12,7 @@ Mundo Nexus é um aplicativo Windows para preparar e administrar servidores de M
 
 ## Estado do código
 
-- Versão: `0.6.6`.
+- Versão: `0.6.7`.
 - Branch ativa: `feature/pc-only-engines-memory-0.6.0`.
 - `main` não deve ser alterada sem revisão e validação.
 - A versão de desenvolvimento não é uma publicação da Microsoft Store.

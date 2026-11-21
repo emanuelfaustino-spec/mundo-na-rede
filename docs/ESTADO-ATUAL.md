@@ -1,6 +1,6 @@
 # Estado atual — Mundo Nexus
 
-Atualizado em 20/11/2026. Versão de desenvolvimento: **0.6.6**.
+Atualizado em 20/11/2026. Versão de desenvolvimento: **0.6.7**.
 
 ## Onde fica cada coisa
 
@@ -31,4 +31,4 @@ Atualizado em 20/11/2026. Versão de desenvolvimento: **0.6.6**.
 
 ## Próximo ponto de trabalho
 
-Validar visualmente o instalador 0.6.6, depois concluir os testes de motores reais e a publicação na Store. Dados de mundos e backups nunca devem ser apagados por atualização ou desinstalação.
+Validar visualmente o instalador 0.6.7, depois concluir os testes de motores reais e a publicação na Store. Dados de mundos e backups nunca devem ser apagados por atualização ou desinstalação.

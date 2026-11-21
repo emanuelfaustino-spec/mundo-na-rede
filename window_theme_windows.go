@@ -12,9 +12,37 @@ const (
 	dwmBorderColor  = 34
 	dwmCaptionColor = 35
 	dwmTextColor    = 36
+	wmSetIcon       = 0x0080
+	iconSmall       = 0
+	iconBig         = 1
+	imageIcon       = 1
 )
 
 var nativeDWM = syscall.NewLazyDLL("dwmapi.dll").NewProc("DwmSetWindowAttribute")
+var nativeUser32 = syscall.NewLazyDLL("user32.dll")
+var nativeSendMessage = nativeUser32.NewProc("SendMessageW")
+var nativeLoadImage = nativeUser32.NewProc("LoadImageW")
+var nativeKernel32 = syscall.NewLazyDLL("kernel32.dll")
+var nativeGetModuleHandle = nativeKernel32.NewProc("GetModuleHandleW")
+
+// setNativeWindowIcon assigns the executable icon to WebView2's native host
+// window. WebView2 otherwise uses its generic window-class icon in the title
+// bar and taskbar preview even when the executable itself has a proper ICO.
+func setNativeWindowIcon(hwnd unsafe.Pointer) {
+	if hwnd == nil || nativeSendMessage.Find() != nil || nativeLoadImage.Find() != nil || nativeGetModuleHandle.Find() != nil {
+		return
+	}
+	module, _, _ := nativeGetModuleHandle.Call(0)
+	if module == 0 {
+		return
+	}
+	for _, entry := range []struct{ kind, size uintptr }{{iconSmall, 16}, {iconBig, 32}} {
+		icon, _, _ := nativeLoadImage.Call(module, 1, imageIcon, entry.size, entry.size, 0)
+		if icon != 0 {
+			_, _, _ = nativeSendMessage.Call(uintptr(hwnd), wmSetIcon, entry.kind, icon)
+		}
+	}
+}
 
 // Windows owns the minimize/maximize/close buttons. Color only its native
 // caption and border, retaining accessibility and standard window behavior.

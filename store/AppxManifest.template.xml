@@ -10,7 +10,7 @@
          IgnorableNamespaces="uap rescap">
   <Identity Name="__STORE_IDENTITY_NAME__"
             Publisher="__STORE_PUBLISHER__"
-            Version="0.6.6.0"
+            Version="0.6.7.0"
             ProcessorArchitecture="x64" />
 
   <Properties>
