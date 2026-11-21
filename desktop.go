@@ -24,6 +24,10 @@ func openWindowsPanel(url string) {
 	}
 	defer w.Destroy()
 	setNativeTitlebar(w.Window(), "dark")
+	// The identity belongs inside the application header. Keeping the standard
+	// caption buttons without an extra tiny icon makes the top-left corner
+	// quieter and avoids a second, visually competing logo.
+	removeNativeWindowIcon(w.Window())
 	// Mirror the HTML theme without replacing the native title bar buttons.
 	_ = w.Bind("nexusSetNativeTheme", func(theme string) error {
 		w.Dispatch(func() { setNativeTitlebar(w.Window(), theme) })

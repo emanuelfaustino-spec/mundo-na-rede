@@ -7,7 +7,7 @@ header{min-height:76px;border-bottom:1px solid #6a78b133;display:flex;justify-co
 .brand{display:flex;align-items:center;gap:11px}
 .brand strong{display:block;letter-spacing:-.04em;font-size:1.14rem}
 .brand small{display:block;color:var(--aqua);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;margin-top:2px}
-.brand-orbit{width:42px;height:42px;display:block;flex:0 0 auto;border-radius:14px;object-fit:cover;box-shadow:0 0 25px #44dce18c}
+.brand-orbit{width:50px;height:50px;display:block;flex:0 0 auto;object-fit:contain;filter:drop-shadow(0 0 12px #44dce16b)}
 .header-actions{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:.82rem}
 main{display:grid;grid-template-columns:minmax(180px,245px) minmax(0,1fr);gap:30px;margin:34px auto;padding:0 20px;max-width:1210px}
 aside{padding-top:10px}
