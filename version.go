@@ -1,6 +1,6 @@
 package main
 
-const appVersion = "0.6.3"
+const appVersion = "0.6.4"
 
 // Set to "store" at MSIX build time; standalone releases use the GitHub updater.
 var distributionChannel = "direct"
