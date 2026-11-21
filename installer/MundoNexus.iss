@@ -2,7 +2,7 @@
 ; sem UAC, e o atalho permanece estável no Menu Iniciar.
 #define AppName "Mundo Nexus"
 #ifndef AppVersion
-  #define AppVersion "0.4.5"
+  #define AppVersion "0.6.8"
 #endif
 #define AppPublisher "Mundo Nexus"
 #define AppExeName "Mundo-Nexus.exe"
@@ -23,7 +23,7 @@ DisableProgramGroupPage=yes
 PrivilegesRequired=lowest
 OutputDir=..\dist\installer
 OutputBaseFilename=Mundo-Nexus-Setup-v{#AppVersion}
-SetupIconFile=..\ui\icon.ico
+SetupIconFile=..\ui\icon-nexus.ico
 LicenseFile=termos-de-uso.txt
 UninstallDisplayIcon={app}\{#AppExeName}
 Compression=lzma2

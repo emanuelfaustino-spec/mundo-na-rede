@@ -20,7 +20,7 @@ func (m *manager) installOfficial(r *http.Request, p Profile, game string) error
 	if p.Engine != "bedrock" || (runtime.GOOS != "windows" && runtime.GOOS != "linux") {
 		return errors.New("instalação oficial disponível no Windows e no Ubuntu")
 	}
-	if r.Header.Get("X-Accept-BDS-Terms") != "yes" {
+	if !acceptedBDSTerms(r) {
 		return errors.New("confirme os termos do download oficial antes de instalar")
 	}
 	if hasEngine(game, "bedrock") {

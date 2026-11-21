@@ -11,7 +11,7 @@ func TestPruneBackupsWithFewerThanRetention(t *testing.T) {
 		t.Run(string(rune('0'+count)), func(t *testing.T) {
 			dir := t.TempDir()
 			for i := 0; i < count; i++ {
-				name := "mundo-nexus-20261120-101010-00000" + string(rune('0'+i)) + ".zip"
+				name := "mundo-nexus-auto-20261120-101010-00000" + string(rune('0'+i)) + ".zip"
 				if err := os.WriteFile(filepath.Join(dir, name), []byte("test"), 0600); err != nil {
 					t.Fatal(err)
 				}

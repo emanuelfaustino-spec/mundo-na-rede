@@ -17,12 +17,12 @@ jobs:
         with:
           go-version: "1.25.x"
       - run: go test ./...
+      - run: go vet ./...
+      - run: node scripts/verify-ui.cjs
       - name: Compilar Windows sem console
         run: GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -ldflags='-H=windowsgui' -o dist/Mundo-Nexus.exe .
       - name: Compilar Linux
         run: GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o dist/mundo-nexus-linux-amd64 .
-      - name: Compilar Android experimental
-        run: GOOS=android GOARCH=arm64 CGO_ENABLED=0 go build -o dist/mundo-nexus-android-arm64 .
       # Os binarios abaixo sao apenas artefatos de teste, nunca releases publicas.
       # Uma release publica exige assinatura e verificacao manual (RELEASE.md).
       - name: Guardar compilacoes para validacao

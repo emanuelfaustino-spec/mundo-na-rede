@@ -7,7 +7,7 @@ header{min-height:76px;border-bottom:1px solid #6a78b133;display:flex;justify-co
 .brand{display:flex;align-items:center;gap:11px}
 .brand strong{display:block;letter-spacing:-.04em;font-size:1.14rem}
 .brand small{display:block;color:var(--aqua);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;margin-top:2px}
-.brand-orbit{width:39px;height:39px;display:grid;place-items:center;border-radius:14px;color:#081122;background:conic-gradient(from 210deg,var(--aqua),var(--violet),var(--coral),var(--aqua));box-shadow:0 0 25px #8d7dff88;font-size:23px}
+.brand-orbit{width:48px;height:48px;display:block;flex:0 0 auto;object-fit:contain;filter:drop-shadow(0 0 10px #44dce16b)}
 .header-actions{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:.82rem}
 main{display:grid;grid-template-columns:minmax(180px,245px) minmax(0,1fr);gap:30px;margin:34px auto;padding:0 20px;max-width:1210px}
 aside{padding-top:10px}
@@ -42,6 +42,8 @@ a{color:var(--aqua)}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:12px;margin-bottom:14px}
 .create-basics{grid-template-columns:minmax(0,2fr) minmax(145px,1fr) minmax(115px,.75fr) minmax(140px,1fr);align-items:end}.create-basics label{min-width:0}.create-basics select{min-width:0}.create-basics #create-capacity{grid-column:1/-1;margin:-2px 0 4px}
 .capacity-note{display:flex;align-items:center;min-height:38px;padding:8px 11px;border-left:3px solid var(--aqua);border-radius:0 10px 10px 0;background:#0d24306e;color:#c4fdf6;font-size:.82rem}
+.memory-picker{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:9px 11px;border:1px solid #5f77a866;border-radius:13px;background:#081124aa}.memory-picker input{margin:0}.memory-picker output{min-width:4.6rem;color:#d9fffb;font-variant-numeric:tabular-nums;text-align:right}.memory-picker+small{line-height:1.35}
+.memory-override{margin-top:3px;padding:8px 10px;border-left:2px solid var(--gold);border-radius:0 9px 9px 0;background:#33281462;color:#f6e6bc}.memory-override .check{font-size:.8rem;line-height:1.25}
 label{display:grid;gap:5px;margin-bottom:12px;font-size:.9rem}
 .inline{display:flex;align-items:center;margin:0}
 .command{margin-top:12px}
@@ -170,3 +172,70 @@ select,input{max-width:100%;min-width:0}
 .pregeneration{margin:16px 0;padding:16px;border:1px solid #5edbca52;border-radius:16px;background:linear-gradient(120deg,#102d3a9c,#161945a8)}
 .pregeneration h3{margin:0 0 5px;font-size:1rem}.pregeneration label{max-width:520px;margin:13px 0 4px}.pregeneration input{width:100%;padding:0;accent-color:var(--aqua)}
 
+
+/* Mundo Nexus 0.5: navegação objetiva e recursos avançados sob demanda. */
+#world-tabs{grid-template-columns:repeat(7,minmax(0,1fr));overflow:visible;align-items:stretch}
+.hero{overflow:visible}
+#world-tabs button{font-size:.76rem;white-space:normal;line-height:1.2}
+#world-tabs [data-tab="addons"]{letter-spacing:-.015em}
+#world-tabs .tab-icon{font-size:1.05rem;line-height:1}
+#more-tabs{position:relative;min-width:0}
+#more-tabs summary{height:100%;display:flex;align-items:center;justify-content:center;gap:5px;cursor:pointer;color:var(--muted);font-size:.82rem;list-style:none;padding:7px;border-radius:10px}
+#more-tabs summary::-webkit-details-marker{display:none}
+#more-tabs[open] summary{background:#284675;color:#fff}
+#more-tabs .more-list{position:absolute;right:0;top:calc(100% + 7px);width:min(270px,82vw);z-index:20;display:grid;gap:5px;padding:10px;border-radius:14px;border:1px solid #5c7db47c;background:#101d36;box-shadow:0 16px 42px #020816d9}
+#more-tabs .more-list button{width:100%;min-height:36px;text-align:left!important;padding:9px 12px;background:#16263f;border-radius:8px;color:#e8effe}
+#more-tabs .more-list button[aria-pressed=true]{background:#304e8b}
+#more-tabs .mode-choice{display:flex;align-items:center;gap:7px;margin:5px 0 0;padding:8px 4px;color:#d8e2fa;font-size:.78rem}
+#more-tabs .mode-choice input{accent-color:var(--aqua);width:auto}
+.micro-help{font-size:.84rem;color:var(--muted);line-height:1.45;margin:8px 0 13px}
+.engine-install,.create-more,.danger-zone{border:1px solid #6778a44c;border-radius:11px;padding:10px 12px;margin:12px 0;background:#0b172a8c}
+.engine-install summary,.create-more summary,.danger-zone summary{cursor:pointer;font-weight:650}
+.engine-install[open]>summary,.create-more[open]>summary{margin-bottom:11px}
+.danger-zone{margin-top:10px;border-color:#b35a6d35}
+.danger-zone summary{color:#c7b5bf;font-weight:500;font-size:.8rem}
+body:not(.expert-mode) .expert-only{display:none!important}
+.check-result{padding:4px 0;margin:12px 0}
+.check-result[hidden]{display:none}
+.check-result p{font-size:.83rem;line-height:1.35;margin:5px 0;padding:7px 10px;border-radius:8px;background:#12253d}
+.check-result .check-ok{color:#9aebd4;border-left:3px solid #39c59b}
+.check-result .check-warn{color:#ffe1a4;border-left:3px solid #e8ad48}
+.check-result .check-error{color:#ffc7cc;border-left:3px solid #ef7585}
+[data-section="help"] details,[data-section="account"] details,[data-section="network"] details{margin:8px 0;padding:10px 12px;border-radius:10px;background:#101e35}
+[data-section="help"] summary,[data-section="account"] summary,[data-section="network"] summary{cursor:pointer;font-weight:600;font-size:.9rem}
+[data-section="help"] p{font-size:.84rem;margin:8px 0 1px}
+[data-section="help"] button{margin-top:12px}
+#addons-content>:not(:last-child){margin-bottom:10px}
+@media(max-width:980px){#world-tabs{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:650px){#world-tabs{grid-template-columns:repeat(3,minmax(0,1fr))}#world-tabs button{min-height:46px;font-size:.7rem}#more-tabs summary{min-height:46px}#world-tabs .tab-icon{margin-bottom:2px!important}}
+
+
+/* Refinamento 0.6.1: cinco controles no topo, sem componentes novos. */
+header{min-height:70px;padding-inline:clamp(16px,3vw,44px)}
+.header-actions{gap:6px;min-width:0;flex:0 1 auto}
+.header-actions #device{display:block;max-width:clamp(110px,22vw,240px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.75rem}
+.header-actions select{max-width:116px;min-width:98px;text-overflow:ellipsis}
+.header-actions button{flex:0 0 auto}
+.brand{flex:0 0 auto}
+.sidebar-empty{margin:14px 3px;padding:14px 10px;border:1px dashed #7783b65e;border-radius:12px;font-size:.83rem;line-height:1.45;color:var(--muted)}
+#create-form select[name="engine"]{width:100%;text-overflow:ellipsis}
+button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--aqua);outline-offset:3px}
+@media(max-width:920px){header{padding-inline:16px}.header-actions #device{max-width:160px}.brand small{letter-spacing:.07em}}
+@media(max-width:700px){header{min-height:62px}.header-actions #device{display:none}.header-actions select{min-width:80px;max-width:98px}}
+
+/* Diálogos nativos do Mundo Nexus; também funcionam sobre outros <dialog>. */
+#nexus-dialog{width:min(430px,calc(100vw - 30px));padding:24px;border:1px solid #697cba9e;border-radius:20px;background:linear-gradient(155deg,#18243fee,#0c1328 85%);color:#edf2ff;box-shadow:0 25px 85px #020414df}
+#nexus-dialog::backdrop{background:#010714c9;backdrop-filter:blur(5px)}
+#nexus-dialog .nexus-dialog-icon{display:grid;place-items:center;width:38px;height:38px;margin-bottom:12px;border-radius:13px;background:linear-gradient(135deg,#60e6d6,#9184ee);color:#101a32;font-size:1.1rem}
+#nexus-dialog h2{font-size:1.18rem;letter-spacing:-.025em;margin:0 0 9px}
+#nexus-dialog p{font-size:.9rem;line-height:1.55;margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere;color:#bfcae4}
+#nexus-dialog #nexus-dialog-input{width:100%;margin:0 0 18px}
+#nexus-dialog .nexus-dialog-actions{display:flex;justify-content:flex-end;gap:9px;flex-wrap:wrap}
+#engines-result{white-space:pre-wrap}
+#nexus-dialog .nexus-dialog-actions button{min-width:90px}
+#nexus-dialog #nexus-dialog-accept{background:linear-gradient(115deg,#58e4d3,#75d4f1);border-color:transparent;color:#08162b}
+#nexus-dialog #nexus-dialog-accept.danger{background:linear-gradient(115deg,#f49bad,#f6aeaa);color:#39121c}
+html[data-theme="light"] #nexus-dialog{background:linear-gradient(150deg,#ffffff,#e8effa);color:#17213c}
+html[data-theme="light"] #nexus-dialog p{color:#43516c}
+html[data-theme="light"] #nexus-dialog #nexus-dialog-cancel{background:#edf1fc;color:#1d2d4e}
+@media(prefers-reduced-motion:reduce){#nexus-dialog::backdrop{backdrop-filter:none}}

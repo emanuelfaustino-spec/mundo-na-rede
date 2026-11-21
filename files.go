@@ -246,7 +246,7 @@ func (m *manager) backup(w http.ResponseWriter, game, id string) {
 		fail(w, err)
 		return
 	}
-	name := "mundo-nexus-" + time.Now().UTC().Format("20060102-150405") + "-" + randomHex(3) + ".zip"
+	name := "mundo-nexus-manual-" + time.Now().UTC().Format("20060102-150405") + "-" + randomHex(3) + ".zip"
 	archive, err := os.OpenFile(filepath.Join(folder, name), os.O_CREATE|os.O_EXCL|os.O_RDWR, 0600)
 	if err != nil {
 		fail(w, err)
@@ -259,10 +259,7 @@ func (m *manager) backup(w http.ResponseWriter, game, id string) {
 		fail(w, err)
 		return
 	}
-	if err = pruneLocalBackups(folder); err != nil {
-		fail(w, err)
-		return
-	}
+	// A backup exported by the user is manual: never delete it automatically.
 	if _, err = archive.Seek(0, io.SeekStart); err != nil {
 		fail(w, err)
 		return

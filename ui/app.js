@@ -46,6 +46,59 @@ let pending = false;
 let refreshing = false;
 const serverStates = new Map();
 const form = $("create-form");
+// Long server type labels remain accessible even when the select is narrow.
+const engineSelect = form.elements.engine;
+function refreshEngineSelectTitle() {
+  engineSelect.title = engineSelect.selectedOptions[0]?.textContent || "";
+}
+engineSelect.addEventListener("change", refreshEngineSelectTitle);
+refreshEngineSelectTitle();
+function formatMemoryTier(mib) {
+  if (mib % 1024 === 0) return (mib / 1024) + " GiB";
+  return (mib / 1024).toLocaleString("pt-BR", {maximumFractionDigits: 1}) + " GiB";
+}
+function roundedMemoryTiers() {
+  const supplied = host?.memoryTiers;
+  if (Array.isArray(supplied) && supplied.length) return supplied;
+  const ceiling = Number(host?.safeMemory || 2048);
+  const tiers = [];
+  for (let value = 512; value <= ceiling; value += 512) tiers.push(value);
+  return tiers.length ? tiers : [512];
+}
+function closestMemoryTier(value, tiers) {
+  const requested = Number(value) || tiers[0];
+  return tiers.reduce((best, tier) => Math.abs(tier - requested) < Math.abs(best - requested) ? tier : best, tiers[0]);
+}
+function configureMemoryPicker(inputID, outputID, helpID, overrideID, requested, useRecommendation = false) {
+  const input = $(inputID);
+  const output = $(outputID);
+  if (!input || !output) return;
+  const tiers = roundedMemoryTiers();
+  input.min = tiers[0];
+  input.max = tiers[tiers.length - 1];
+  input.step = 512;
+  const preferred = useRecommendation ? (host?.recommendedMemory || requested) : requested;
+  input.value = closestMemoryTier(preferred, tiers);
+  const overrideBox = $(overrideID);
+  const overrideInput = overrideBox?.querySelector("input[name=memoryOverride]");
+  const update = () => {
+    output.value = formatMemoryTier(Number(input.value));
+    const advanced = Number(input.value) > Number(host?.safeMemory || 0);
+    if (overrideBox) overrideBox.hidden = !advanced;
+    if (overrideInput) overrideInput.required = advanced;
+  };
+  input.oninput = update;
+  update();
+  const help = helpID ? $(helpID) : null;
+  if (help && host?.availableMemory) {
+    const reserve = Number(host.memoryReserve || 0);
+    const maxTier = tiers[tiers.length - 1];
+    const recommended = closestMemoryTier(host.recommendedMemory || host.safeMemory || maxTier, tiers);
+    help.textContent = formatMemoryTier(host.availableMemory) + " livres agora · " +
+      (reserve ? formatMemoryTier(reserve) + " protegidos para o PC · " : "") +
+      "recomendado até " + formatMemoryTier(recommended) + " · até " + formatMemoryTier(maxTier) + " com uso avançado.";
+  }
+}
 const worldTemplates = {
   custom: {tip:"Você decide cada regra. O mundo começa com os padrões seguros do Bedrock.",mode:"survival",difficulty:"normal",players:5,preset:"balanced",rules:{}},
   friends: {tip:"Equilibrado para jogar em grupo: PvP ligado, coordenadas visíveis e desempenho moderado.",mode:"survival",difficulty:"normal",players:8,preset:"balanced",rules:{showcoordinates:true,pvp:true,keepinventory:false,dodaylightcycle:true,doweathercycle:true,naturalregeneration:true}},
@@ -87,8 +140,8 @@ function showCreate() {
   $("panel").hidden = true;
   drawServers();
 }
-$("delete-server").addEventListener("click", () => {
-  if (!selected || !confirm("Excluir o servidor ‘"+selected.name+"’ e os arquivos locais dele? Faça ou confirme seus backups antes. Esta ação não pode ser desfeita.")) return;
+$("delete-server").addEventListener("click", async () => {
+  if (!selected || !await nexusConfirm("Excluir o servidor ‘"+selected.name+"’ e os arquivos locais dele? Faça ou confirme seus backups antes. Esta ação não pode ser desfeita.")) return;
   const server=selected;
   perform(async () => {
     await request("/"+server.id+"/delete", {method:"POST"});
@@ -99,7 +152,14 @@ $("delete-server").addEventListener("click", () => {
 });
 function drawServers() {
   $("servers").replaceChildren();
-  for (const server of host?.servers || []) {
+  const servers = host?.servers || [];
+  if (!servers.length) {
+    const hint=document.createElement("p");
+    hint.className="sidebar-empty";
+    hint.textContent="Nenhum servidor criado. Use + para começar.";
+    $("servers").append(hint);
+  }
+  for (const server of servers) {
     const entry = document.createElement("button");
     entry.className = "server-entry";
     const state=serverStates.get(server.id)||"parado";
@@ -137,12 +197,17 @@ function select(server) {
     : t("Conecte este dispositivo à rede local");
   $("install-tip").textContent = engine.tip;
   $("engine-explainer").textContent=server.engine==="bedrock"
-    ? "Bedrock oficial é a escolha recomendada para Minecraft no Windows e celular. Baixar automaticamente usa a versão oficial; usar arquivo já baixado importa um ZIP que você já possui."
+    ? "O motor Bedrock fica salvo na Biblioteca e pode ser usado por outros servidores."
     : "Use o preparo automático quando disponível. Importar um motor só é necessário se você já possui um arquivo confiável e compatível.";
   $("world").hidden = server.engine !== "bedrock";
   $("eula").hidden = server.engine !== "java";
   $("official").hidden = server.engine !== "bedrock";
   $("access-edit").hidden=server.engine!=="bedrock";
+  $("player-add-form").hidden=server.engine!=="bedrock";
+  $("people-search").hidden=server.engine!=="bedrock";
+  $("people-java-tip").hidden=server.engine==="bedrock";
+  $("addons-message").textContent=server.engine==="bedrock"?"Use add-ons e pacotes Bedrock."
+    :server.engine==="both"?"Use plugins do Paper.":"Use mods e plugins compatíveis com o motor.";
   $("internal-packs").hidden=server.engine!=="bedrock";
   $("internal-packs").open=false;
   $("internal-list").replaceChildren();
@@ -188,13 +253,12 @@ function engineTip() {
   const hardcoreOption=form.elements.mode.querySelector('[value="hardcore"]');
   hardcoreOption.disabled=engine!=="bedrock";
   if(engine!=="bedrock" && form.elements.mode.value==="hardcore") form.elements.mode.value="survival";
-  $("memory-label").hidden = engine === "bedrock";
+  $("memory-label").hidden = false;
   $("create-bedrock").hidden=engine!=="bedrock";
   $("world-template-picker").hidden=engine!=="bedrock";
+  $("create-more").hidden=engine!=="bedrock";
   form.elements.port.value = ["java","both"].includes(engine) ? "25565" : "19132";
-  if (host?.availableMemory) {
-    form.elements.memory.value = Math.min(4096, Math.max(512, Math.floor(host.availableMemory / 2 / 256) * 256));
-  }
+  configureMemoryPicker("create-memory", "create-memory-value", "memory-recommendation", "create-memory-override", form.elements.memory.value, true);
   $("engine-tip").textContent = engines[engine].tip;
 }
 function applyWorldTemplate() {
@@ -238,19 +302,21 @@ async function refresh() {
     drawHealth(server,data);
     $("access-edit").disabled = !["parado","falhou"].includes(data.state);
     $("state").textContent = !data.installed ? t("Motor pendente") : t(data.state);
+    if (!data.installed) $("engine-install").open = true;
     $("start").disabled = (!data.installed && server.engine!=="bedrock") || !["parado", "falhou"].includes(data.state);
     $("stop").disabled = !["iniciando", "online"].includes(data.state);
     $("restart").disabled = data.state !== "online";
     $("force").hidden = data.state !== "encerrando";
     $("uptime").textContent = data.seconds ? Math.floor(data.seconds / 60) + t(" min em execução") : "";
     $("overview-title").textContent = data.state==="online"
-      ? "Seu mundo está recebendo jogadores"
-      : !data.installed ? "Instale o motor do mundo" : "Prepare seu mundo";
+      ? "Servidor online"
+      : !data.installed ? "Prepare o motor" : "Pronto para iniciar";
     $("overview-status").textContent = data.state==="online"
-      ? "Mundo online · "+(data.players??0)+"/"+server.players+" jogadores · use o painel de comandos para administrar em tempo real."
-      : "Mundo "+t(data.state)+" · ajuste o mundo, prepare jogadores ou inicie quando estiver pronto.";
+      ? (data.players??0)+"/"+server.players+" jogadores conectados."
+      : !data.installed ? "Abra Mundo e prepare o motor." : "Toque em Iniciar para jogar.";
     fullLogs = data.logs || [];
     renderLogs();
+    if (document.querySelector('[data-tab="console"][aria-pressed="true"]')) explainRecentError();
     renderPregeneration(data.pregeneration);
   } catch (error) {
     notice(error.message, true);
@@ -274,10 +340,10 @@ function renderPregeneration(job) {
   else $("pregeneration-status").textContent=({running:"Carregando "+job.completed+" de "+job.total+" áreas…",completed:"Região carregada. O terreno visitado ficou salvo no mundo.",cancelled:"Pré-geração cancelada; os chunks já visitados permanecem salvos.",stopped:"O mundo foi parado antes de concluir.",failed:"Não foi possível enviar uma área ao Bedrock; confira o console."})[job.state]||job.state;
 }
 $("pregeneration-radius").addEventListener("input",()=>renderPregeneration(currentStatus.pregeneration));
-$("pregeneration-start").addEventListener("click",()=>{
+$("pregeneration-start").addEventListener("click",async ()=>{
   if (!selected) return;
   const radius=Number($("pregeneration-radius").value);
-  if (!confirm("Carregar "+radius+" chunks ao redor do spawn? Isso pode deixar o servidor mais lento durante o processo.")) return;
+  if (!await nexusConfirm("Carregar "+radius+" chunks ao redor do spawn? Isso pode deixar o servidor mais lento durante o processo.")) return;
   action("pregeneration",JSON.stringify({radius}));
 });
 $("pregeneration-cancel").addEventListener("click",()=>action("pregeneration-cancel"));
@@ -324,21 +390,31 @@ $("new").addEventListener("click", showCreate);
 form.elements.engine.addEventListener("change", engineTip);
 $("world-template").addEventListener("change",applyWorldTemplate);
 $("addon-folder").addEventListener("change", updateAddonTip);
-$("start").addEventListener("click", () => {
-  if (selected?.engine==="bedrock" && (!currentStatus.installed || !currentStatus.access || currentStatus.accessWarning)) openPreparation(true);
-  else action("start");
+$("start").addEventListener("click", async () => {
+  if (selected?.engine==="bedrock" && (!currentStatus.installed || !currentStatus.access || currentStatus.accessWarning)) {
+    openPreparation(true);
+    return;
+  }
+  const server=selected;
+  const checked=await verifyServer("preflight-result");
+  if (server!==selected) return;
+  if (checked?.ready) action("start");
+  else if (checked) {
+    chooseTab("all");
+    notice("Confira a verificação antes de iniciar.",true);
+  }
 });
 $("stop").addEventListener("click", () => action("stop"));
 $("restart").addEventListener("click", () => action("restart"));
 $("official").addEventListener("click", () => openPreparation(false));
 $("access-edit").addEventListener("click", () => openPreparation(false));
-$("mixed-install").addEventListener("click", () => {
+$("mixed-install").addEventListener("click", async () => {
   const server = selected;
-  if (!server || !confirm(t("Você leu e aceita a EULA do Minecraft em https://www.minecraft.net/eula?"))) return;
+  if (!server || !await nexusConfirm(t("Você leu e aceita a EULA do Minecraft em https://www.minecraft.net/eula?"))) return;
   perform(() => request("/" + server.id + "/crossplay", {method: "POST", headers: {"X-Accept-BDS-Terms":"yes"}}));
 });
-$("eula").addEventListener("click", () => {
-  if (confirm(t("Você leu e aceita a EULA do Minecraft em https://www.minecraft.net/eula?"))) action("accept-eula");
+$("eula").addEventListener("click", async () => {
+  if (await nexusConfirm(t("Você leu e aceita a EULA do Minecraft em https://www.minecraft.net/eula?"))) action("accept-eula");
 });
 for (const [id, command] of [["kick", "kick"], ["ban", "ban"], ["operator", "op"]]) {
   $(id).addEventListener("click", () => {
@@ -346,8 +422,8 @@ for (const [id, command] of [["kick", "kick"], ["ban", "ban"], ["operator", "op"
     $("command").focus();
   });
 }
-$("force").addEventListener("click", () => {
-  if (confirm(t("Forçar a parada pode perder alterações recentes. Continuar?"))) action("force");
+$("force").addEventListener("click", async () => {
+  if (await nexusConfirm(t("Forçar a parada pode perder alterações recentes. Continuar?"))) action("force");
 });
 $("copy").addEventListener("click", async () => {
   if (!selected || !host.ips.length) return;
@@ -371,9 +447,9 @@ $("allowlist").addEventListener("click", () => {
   $("command").focus();
 });
 for (const button of document.querySelectorAll("[data-upload]")) {
-  button.addEventListener("click", () => {
+  button.addEventListener("click", async () => {
     upload = button.dataset.upload;
-    if (upload === "restore" && !confirm(t("Restaurar os arquivos deste servidor? A pasta atual será preservada."))) return;
+    if (upload === "restore" && !await nexusConfirm(t("Restaurar os arquivos deste servidor? A pasta atual será preservada."))) return;
     const file = $("file");
     file.value = "";
     file.accept = {
@@ -434,20 +510,17 @@ $("schedule-form").addEventListener("submit", (event) => {
 (async function initialize() {
   try {
     host = await (await request("")).json();
-    const platform = { windows: "Windows", android: "Android", linux: "Linux" }[host.os] || host.os;
+    const platform = { windows: "Windows", linux: "Linux" }[host.os] || host.os;
     $("device").textContent = platform + " · " + host.cores + t(" núcleos") +
       (host.totalMemory ? " · " + (host.totalMemory / 1024).toFixed(1) + " GiB RAM" : "");
-    if (host.os === "android") {
-      form.elements.engine.querySelector('[value="bedrock"]').disabled = true;
-      form.elements.engine.value = "pnx";
-    }
+
     engineTip();
     applyWorldTemplate();
     form.elements.players.value = host.recommendedPlayers || 4;
     $("create-capacity").textContent = capacityHint();
     if (host.servers.length) select(host.servers[0]);
     else showCreate();
-    setInterval(refresh, 1400);
+    setInterval(()=>{if(!document.hidden) refresh();}, 2800);
   } catch (error) {
     notice(error.message, true);
   }
@@ -482,8 +555,7 @@ async function showAccount() {
 	  $("account-setup").open=true;
 	}
   $("account-name").textContent = account.bridge ? "" : [account.name, account.email].filter(Boolean).join(" · ");
-  $("account-bridge").hidden = !account.bridge;
-  $("account-pair").hidden = !account.bridge || account.connected;
+
   if (!account.connected) $("cloud-backups").replaceChildren();
   $("account-connect").disabled = !account.available;
   $("account-connect").hidden = account.connected || account.bridge;
@@ -515,12 +587,9 @@ $("account-connect").addEventListener("click", () => {
     }
   });
 });
-$("account-pair").addEventListener("click", () => updateAccount(async () => {
-  await accountRequest("/pair", "POST");
-  await loadCloudBackups();
-}));
-$("account-disconnect").addEventListener("click", () => {
-  if (confirm(t("Desconectar este aparelho da conta Google?"))) updateAccount(() => accountRequest("/disconnect", "POST"));
+
+$("account-disconnect").addEventListener("click", async () => {
+  if (await nexusConfirm(t("Desconectar este aparelho da conta Google?"))) updateAccount(() => accountRequest("/disconnect", "POST"));
 });
 $("account-setup-form").addEventListener("submit", (event) => {
   event.preventDefault();
@@ -535,7 +604,7 @@ $("account-setup-form").addEventListener("submit", (event) => {
   });
 });
 setInterval(() => {
-  if ($("account").open) updateAccount(async () => {});
+  if (!document.hidden && $("account").open) updateAccount(async () => {});
 }, 3500);
 
 
@@ -576,7 +645,7 @@ $("config-form").addEventListener("submit", async (event) => {
 function capacityHint() {
   const players=host?.recommendedPlayers || 4;
   const cores=host?.cores || 1;
-  const ram=host?.totalMemory ? (host.totalMemory/1024).toFixed(1)+" GiB RAM" : "RAM disponível";
+  const ram=host?.availableMemory ? (host.availableMemory/1024).toFixed(1)+" GiB livres" : "RAM não identificada";
   return "Recomendado para este PC · até "+players+" jogadores · "+cores+" núcleos · "+ram;
 }
 function drawPublicAddresses(server) {
@@ -628,8 +697,8 @@ async function refreshExtensions(server) {
       if (entry.id) {
         const remove=document.createElement("button");
         remove.textContent=t("Remover");
-        remove.addEventListener("click",() => {
-          if (confirm(t("Remover este add-on do mundo?"))) action("remove-addon",JSON.stringify({id:entry.id,kind:entry.kind}));
+        remove.addEventListener("click",async () => {
+          if (await nexusConfirm(t("Remover este add-on do mundo?"))) action("remove-addon",JSON.stringify({id:entry.id,kind:entry.kind}));
         });
         row.append(remove);
       }
@@ -686,7 +755,9 @@ $("world-edit").addEventListener("click", () => {
   for (const field of ["name", "mode", "port", "players", "memory", "publicJava", "publicBedrock","difficulty","preset","viewDistance","tickDistance"]) {
     settingsForm.elements[field].value = selected[field] ?? "";
   }
-  $("world-memory").hidden = selected.engine === "bedrock";
+  $("world-memory").hidden = false;
+  configureMemoryPicker("world-memory-input", "world-memory-value", "world-memory-help", "world-memory-override", selected.memory, false);
+  settingsForm.elements.memoryOverride.checked = Boolean(selected.memoryOverride);
   $("settings-bedrock").hidden=selected.engine!=="bedrock";
   if (selected.engine==="bedrock") {
     settingsForm.elements.allowCheats.checked=Boolean(selected.allowCheats);
@@ -790,15 +861,15 @@ async function loadCloudBackups() {
     const restore = document.createElement("button");
     restore.textContent = t("Restaurar do Drive");
     restore.disabled = selected?.engine !== copy.engine;
-    restore.addEventListener("click", () => {
-      if (!confirm(t("Restaurar o backup no mundo selecionado? A pasta anterior será preservada."))) return;
+    restore.addEventListener("click", async () => {
+      if (!await nexusConfirm(t("Restaurar o backup no mundo selecionado? A pasta anterior será preservada."))) return;
       $("account").close();
       action("cloud-restore", JSON.stringify({id: copy.id}));
     });
     const remove = document.createElement("button");
     remove.textContent = t("Excluir backup");
-    remove.addEventListener("click", () => {
-      if (!confirm(t("Excluir esta cópia do Google Drive? Esta ação não pode ser desfeita."))) return;
+    remove.addEventListener("click", async () => {
+      if (!await nexusConfirm(t("Excluir esta cópia do Google Drive? Esta ação não pode ser desfeita."))) return;
       perform(async () => { await accountRequest("/backups/delete", {method:"POST",body:JSON.stringify({id:copy.id})}); await loadCloudBackups(); });
     });
     row.append(label, restore, remove);
@@ -812,7 +883,9 @@ function chooseTab(name) {
     tab.setAttribute("aria-pressed", String(tab.dataset.tab === name));
   }
   if (name==="people" && selected) refreshPeople(selected);
-  if (name==="details" && selected) refreshMetrics(selected);
+  if ((name==="automation" || name==="all") && selected) refreshMetrics(selected);
+  if (name==="console") {$("console-details").open=true;explainRecentError();}
+  $("more-tabs").open = ["network","automation","account","help"].includes(name);
   for (const card of document.querySelectorAll("[data-section]")) {
     card.hidden = card.dataset.section !== name;
   }
@@ -824,13 +897,13 @@ for (const button of document.querySelectorAll("[data-go-tab]")) {
   button.addEventListener("click", () => chooseTab(button.dataset.goTab));
 }
 $("open-console").addEventListener("click", () => {
-  chooseTab("details");
+  chooseTab("console");
   $("console-details").open=true;
   $("command").focus();
 });
 // Commands are operational controls, so keep them in Controle rather than
 // hiding them inside the player list.
-document.querySelector('[data-section="details"]').append($("console-details"));
+document.querySelector('[data-section="console"]').append($("console-details"));
 for (const field of ["viewDistance","tickDistance"]) {
   settingsForm.elements[field].addEventListener("input", () => {
     $(field==="viewDistance"?"view-distance-output":"tick-distance-output").value=settingsForm.elements[field].value+" chunks";
@@ -846,10 +919,10 @@ function drawHealth(server, data) {
   if (data.players !== undefined && server.engine === "bedrock") add(t("Jogadores"),data.players+"/"+server.players,undefined,data.state==="online"?t("conectados agora"):t("aguardando o mundo"),"players");
   else add(t("Porta"),String(server.port),undefined,data.version?"BDS "+data.version:t("endereço do jogo"),"port");
   if (data.memoryTotal) {
-    const percent=100*data.memoryUsed/data.memoryTotal;
-    add("RAM do PC",(data.memoryUsed/1024).toFixed(1)+" / "+(data.memoryTotal/1024).toFixed(1)+" GiB",percent,t("uso do anfitrião"),"memory");
+    const percent=100*data.memoryAvailable/data.memoryTotal;
+    add("RAM livre do PC",(data.memoryAvailable/1024).toFixed(1)+" GiB",percent,t("capacidade disponível"),"memory");
   }
-  if (data.performance?.serverMemory) add(t("RAM do servidor"),Math.round(data.performance.serverMemory/1048576)+" MiB",undefined,t("medição atual do processo"),"server-memory");
+  if (data.performance?.serverMemory) add(t("RAM do servidor"),Math.round(data.performance.serverMemory/1048576)+" / "+data.serverMemoryLimit+" MiB",100*data.performance.serverMemory/1048576/data.serverMemoryLimit,t("medição do processo do motor"),"server-memory");
   if (data.performance?.serverCPU!==undefined) {
     add(t("CPU servidor"),data.performance.serverCPU.toFixed(1)+"%",data.performance.serverCPU,t("uso do motor"),"cpu");
     cpuHistory.push(data.performance.serverCPU);
@@ -1111,7 +1184,7 @@ function renderPeople() {
         const button=document.createElement("button");
         button.textContent=t(title);
         button.addEventListener("click", async () => {
-          if (cmd!=="allow" && !confirm(t(title)+" · "+name+"?")) return;
+          if (cmd!=="allow" && !await nexusConfirm(t(title)+" · "+name+"?")) return;
           await action("player-action",JSON.stringify({name,action:cmd}));
           setTimeout(() => {if (selected) refreshPeople(selected);},600);
         });
@@ -1135,7 +1208,7 @@ $("player-add-form").addEventListener("submit", async (event) => {
   } catch(error) {notice(error.message,true);}
 });
 async function actionRequest(name, action) {
-  if (["ban","unallow","unban","kick","deop"].includes(action) && !confirm(t({ban:"Banir",unallow:"Remover da lista",unban:"Remover banimento",kick:"Expulsar",deop:"Remover operador"}[action])+" · "+name+"?")) return;
+  if (["ban","unallow","unban","kick","deop"].includes(action) && !await nexusConfirm(t({ban:"Banir",unallow:"Remover da lista",unban:"Remover banimento",kick:"Expulsar",deop:"Remover operador"}[action])+" · "+name+"?")) return;
   await action("player-action",JSON.stringify({name,action}));
   setTimeout(() => {if (selected) refreshPeople(selected);},300);
 }
@@ -1162,7 +1235,7 @@ async function refreshMetrics(server) {
 $("economy-mode").addEventListener("click", async () => {
   if (!selected || selected.engine!=="bedrock") return;
   if (!["parado","falhou"].includes(currentStatus.state)) { notice(t("Pare o servidor antes de aplicar o modo econômico."),true); return; }
-  if (!confirm(t("Aplicar distância leve na próxima inicialização?"))) return;
+  if (!await nexusConfirm(t("Aplicar distância leve na próxima inicialização?"))) return;
   const values={...selected,preset:"light"};
   try {
     const saved=await (await request("/"+selected.id+"/world-settings",{method:"POST",body:JSON.stringify(values)})).json();
@@ -1174,6 +1247,12 @@ $("economy-mode").addEventListener("click", async () => {
 
 const storedTheme=localStorage.getItem("theme");
 if (storedTheme) document.documentElement.dataset.theme=storedTheme;
+function syncNativeWindowTheme() {
+  if (typeof window.nexusSetNativeTheme !== "function") return;
+  const theme=document.documentElement.dataset.theme==="light"?"light":"dark";
+  Promise.resolve(window.nexusSetNativeTheme(theme)).catch(()=>{});
+}
+syncNativeWindowTheme();
 const reducedMotion=localStorage.getItem("mnr-reduced-motion")==="true";
 document.documentElement.dataset.reducedMotion=String(reducedMotion);
 $("reload").addEventListener("click",()=>location.reload());
@@ -1187,6 +1266,7 @@ $("theme").addEventListener("click", () => {
   const next=document.documentElement.dataset.theme==="light"?"dark":"light";
   document.documentElement.dataset.theme=next;
   localStorage.setItem("theme",next);
+  syncNativeWindowTheme();
 });
 $("backup-history").addEventListener("toggle", () => {
   if (selected && $("backup-history").open) loadBackupHistory(selected);
@@ -1217,8 +1297,8 @@ async function loadBackupHistory(server) {
         try {await stageRestoreFile(await (await request(route)).blob());}
         catch(error){$("restore-status").textContent=error.message;}
       });
-      remove.addEventListener("click", () => {
-        if (!confirm(t("Excluir essa cópia local?"))) return;
+      remove.addEventListener("click", async () => {
+        if (!await nexusConfirm(t("Excluir essa cópia local?"))) return;
         perform(async () => {await request(route,{method:"POST"});await loadBackupHistory(server);});
       });
       const upload=document.createElement("button");
