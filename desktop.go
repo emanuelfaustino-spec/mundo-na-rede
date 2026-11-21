@@ -14,6 +14,7 @@ func openWindowsPanel(url string) {
 	// WebView2 uses COM and its window message loop must stay on one OS thread.
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
+	setTaskbarAppID()
 	data, _ := os.UserCacheDir()
 	w := webview2.NewWithOptions(webview2.WebViewOptions{
 		DataPath: filepath.Join(data, "MundoNexus", "webview"), AutoFocus: true,

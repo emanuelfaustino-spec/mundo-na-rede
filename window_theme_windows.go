@@ -24,6 +24,22 @@ var nativeSendMessage = nativeUser32.NewProc("SendMessageW")
 var nativeLoadImage = nativeUser32.NewProc("LoadImageW")
 var nativeKernel32 = syscall.NewLazyDLL("kernel32.dll")
 var nativeGetModuleHandle = nativeKernel32.NewProc("GetModuleHandleW")
+var nativeShell32 = syscall.NewLazyDLL("shell32.dll")
+var nativeSetAppID = nativeShell32.NewProc("SetCurrentProcessExplicitAppUserModelID")
+
+// setTaskbarAppID gives Windows a stable identity for this executable. Without
+// it, WebView2 windows can be grouped under a transient host identity, making
+// a minimized window hard to restore from a pinned taskbar button.
+func setTaskbarAppID() {
+	if nativeSetAppID.Find() != nil {
+		return
+	}
+	id, err := syscall.UTF16PtrFromString("MundoNexus.Desktop")
+	if err != nil {
+		return
+	}
+	_, _, _ = nativeSetAppID.Call(uintptr(unsafe.Pointer(id)))
+}
 
 // setNativeWindowIcon assigns the executable icon to WebView2's native host
 // window. WebView2 otherwise uses its generic window-class icon in the title

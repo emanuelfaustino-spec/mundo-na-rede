@@ -12,7 +12,7 @@ Mundo Nexus é um aplicativo Windows para preparar e administrar servidores de M
 
 ## Estado do código
 
-- Versão: `0.6.7`.
+- Versão: `0.6.8`.
 - Branch ativa: `feature/pc-only-engines-memory-0.6.0`.
 - `main` não deve ser alterada sem revisão e validação.
 - A versão de desenvolvimento não é uma publicação da Microsoft Store.
@@ -23,7 +23,16 @@ Mundo Nexus é um aplicativo Windows para preparar e administrar servidores de M
 2. Testar Bedrock, Paper e crossplay com jogadores reais.
 3. Concluir retenção de sete backups, integridade e Drive em conta real.
 4. Executar WACK e completar a ficha/assinatura da Microsoft Store.
-5. Para hospedagem externa: projetar um conector de VPS sob conta do próprio usuário; não prometer serviço gratuito ilimitado.
+5. Para hospedagem externa: implementar o conector de VPS por SSH sob conta do próprio usuário; não prometer serviço gratuito ilimitado.
+
+## Hospedagem externa planejada
+
+O aplicativo terá duas rotas claramente separadas:
+
+- **Servidor local:** o computador do usuário executa o mundo, como funciona hoje.
+- **VPS própria:** o Mundo Nexus prepara e acompanha uma máquina remota da conta do usuário por SSH. A conta, a chave e a liberação de portas continuam sob controle dessa pessoa.
+
+A primeira compatibilidade planejada é Oracle Cloud Always Free, por ser uma opção de baixo custo, mas a criação da conta e a escolha de região exigem ação do proprietário. Não automatizar firewall, roteador, conta ou cobrança sem confirmação explícita.
 
 ## Regras de manutenção
 
