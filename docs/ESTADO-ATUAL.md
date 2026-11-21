@@ -1,6 +1,6 @@
 # Estado atual — Mundo Nexus
 
-Atualizado em 20/11/2026. Versão de desenvolvimento: **0.6.4**.
+Atualizado em 20/11/2026. Versão de desenvolvimento: **0.6.5**.
 
 ## Onde fica cada coisa
 
@@ -17,7 +17,7 @@ Atualizado em 20/11/2026. Versão de desenvolvimento: **0.6.4**.
 
 - Biblioteca de Bedrock, Paper e Java portátil; perfis, mundo, complementos, console, jogadores, backups e diagnósticos.
 - Memória em passos de 0,5 GiB. A recomendação protege o PC; reserva maior exige confirmação explícita.
-- Favicon do Windows e marca interna separados: o ícone do aplicativo é grande e legível; a marca do cabeçalho é uma variação de três blocos.
+- Favicon do Windows e marca interna separados: o ícone do aplicativo é um cubo único com órbita; a marca do cabeçalho é um portal circular, sem cubos.
 - Janela nativa WebView2, sem recarregar com F5, e processos de servidores sem janela de CMD visível.
 
 ## Entrega e publicação
@@ -31,4 +31,4 @@ Atualizado em 20/11/2026. Versão de desenvolvimento: **0.6.4**.
 
 ## Próximo ponto de trabalho
 
-Validar visualmente o instalador 0.6.4, depois concluir os testes de motores reais e a publicação na Store. Dados de mundos e backups nunca devem ser apagados por atualização ou desinstalação.
+Validar visualmente o instalador 0.6.5, depois concluir os testes de motores reais e a publicação na Store. Dados de mundos e backups nunca devem ser apagados por atualização ou desinstalação.
