@@ -39,6 +39,12 @@ func TestServerMemoryTiersAreHalfGiBSteps(t *testing.T) {
 		}
 	}
 }
+
+func TestManualMemoryLimitAllowsThreeGiBOnIdleEightGiBPC(t *testing.T) {
+	if got := manualServerMemoryLimit(8015, 3686); got < 3072 {
+		t.Fatalf("limite manual %d não permite 3 GiB", got)
+	}
+}
 func TestJavaHeapLeavesNativeOverhead(t *testing.T) {
 	for _, limit := range []int{512, 1024, 2048, 4096} {
 		heap := javaHeapLimit(limit)

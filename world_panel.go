@@ -132,7 +132,7 @@ func (m *manager) updateWorld(w http.ResponseWriter, r *http.Request, p Profile,
 		fail(w, err)
 		return
 	}
-	if active && (next.Name != p.Name || next.Port != p.Port || next.Mode != p.Mode || next.Memory != p.Memory || next.Players != p.Players || next.Seed != p.Seed || next.Difficulty != p.Difficulty || next.Preset != p.Preset || next.ViewDistance != p.ViewDistance || next.TickDistance != p.TickDistance || next.AllowCheats != p.AllowCheats || next.ForceGamemode != p.ForceGamemode || next.DefaultPermission != p.DefaultPermission || next.TexturePackRequired != p.TexturePackRequired || next.LANVisibility != p.LANVisibility || next.LANVisibilitySet != p.LANVisibilitySet || !mapsEqual(next.Rules, p.Rules)) {
+	if active && (next.Name != p.Name || next.Port != p.Port || next.Mode != p.Mode || next.Memory != p.Memory || next.MemoryOverride != p.MemoryOverride || next.Players != p.Players || next.Seed != p.Seed || next.Difficulty != p.Difficulty || next.Preset != p.Preset || next.ViewDistance != p.ViewDistance || next.TickDistance != p.TickDistance || next.AllowCheats != p.AllowCheats || next.ForceGamemode != p.ForceGamemode || next.DefaultPermission != p.DefaultPermission || next.TexturePackRequired != p.TexturePackRequired || next.LANVisibility != p.LANVisibility || next.LANVisibilitySet != p.LANVisibilitySet || !mapsEqual(next.Rules, p.Rules)) {
 		fail(w, errors.New("pare o servidor para alterar as opções do mundo"))
 		return
 	}

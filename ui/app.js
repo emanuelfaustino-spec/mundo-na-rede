@@ -69,7 +69,7 @@ function closestMemoryTier(value, tiers) {
   const requested = Number(value) || tiers[0];
   return tiers.reduce((best, tier) => Math.abs(tier - requested) < Math.abs(best - requested) ? tier : best, tiers[0]);
 }
-function configureMemoryPicker(inputID, outputID, helpID, requested, useRecommendation = false) {
+function configureMemoryPicker(inputID, outputID, helpID, overrideID, requested, useRecommendation = false) {
   const input = $(inputID);
   const output = $(outputID);
   if (!input || !output) return;
@@ -79,7 +79,14 @@ function configureMemoryPicker(inputID, outputID, helpID, requested, useRecommen
   input.step = 512;
   const preferred = useRecommendation ? (host?.recommendedMemory || requested) : requested;
   input.value = closestMemoryTier(preferred, tiers);
-  const update = () => { output.value = formatMemoryTier(Number(input.value)); };
+  const overrideBox = $(overrideID);
+  const overrideInput = overrideBox?.querySelector("input[name=memoryOverride]");
+  const update = () => {
+    output.value = formatMemoryTier(Number(input.value));
+    const advanced = Number(input.value) > Number(host?.safeMemory || 0);
+    if (overrideBox) overrideBox.hidden = !advanced;
+    if (overrideInput) overrideInput.required = advanced;
+  };
   input.oninput = update;
   update();
   const help = helpID ? $(helpID) : null;
@@ -88,7 +95,7 @@ function configureMemoryPicker(inputID, outputID, helpID, requested, useRecommen
     const maxTier = tiers[tiers.length - 1];
     help.textContent = formatMemoryTier(host.availableMemory) + " livres agora · " +
       (reserve ? formatMemoryTier(reserve) + " protegidos para o PC · " : "") +
-      "até " + formatMemoryTier(maxTier) + " para este servidor.";
+      "recomendado até " + formatMemoryTier(host.safeMemory || maxTier) + " · até " + formatMemoryTier(maxTier) + " com uso avançado.";
   }
 }
 const worldTemplates = {
@@ -250,7 +257,7 @@ function engineTip() {
   $("world-template-picker").hidden=engine!=="bedrock";
   $("create-more").hidden=engine!=="bedrock";
   form.elements.port.value = ["java","both"].includes(engine) ? "25565" : "19132";
-  configureMemoryPicker("create-memory", "create-memory-value", "memory-recommendation", form.elements.memory.value, true);
+  configureMemoryPicker("create-memory", "create-memory-value", "memory-recommendation", "create-memory-override", form.elements.memory.value, true);
   $("engine-tip").textContent = engines[engine].tip;
 }
 function applyWorldTemplate() {
@@ -748,7 +755,8 @@ $("world-edit").addEventListener("click", () => {
     settingsForm.elements[field].value = selected[field] ?? "";
   }
   $("world-memory").hidden = false;
-  configureMemoryPicker("world-memory-input", "world-memory-value", "world-memory-help", selected.memory, false);
+  configureMemoryPicker("world-memory-input", "world-memory-value", "world-memory-help", "world-memory-override", selected.memory, false);
+  settingsForm.elements.memoryOverride.checked = Boolean(selected.memoryOverride);
   $("settings-bedrock").hidden=selected.engine!=="bedrock";
   if (selected.engine==="bedrock") {
     settingsForm.elements.allowCheats.checked=Boolean(selected.allowCheats);

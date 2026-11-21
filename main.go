@@ -47,6 +47,7 @@ type Profile struct {
 	Port                int             `json:"port"`
 	Players             int             `json:"players"`
 	Memory              int             `json:"memory"`
+	MemoryOverride      bool            `json:"memoryOverride,omitempty"`
 	Mode                string          `json:"mode"`
 	Seed                string          `json:"seed,omitempty"`
 	Difficulty          string          `json:"difficulty,omitempty"`
@@ -228,7 +229,8 @@ func (m *manager) api(w http.ResponseWriter, r *http.Request) {
 			}
 			total, available := memoryMiB()
 			safeMemory := safeServerMemoryLimit(total, available)
-			writeJSON(w, map[string]any{"servers": list, "ips": localIPs(), "os": runtime.GOOS, "cores": runtime.NumCPU(), "totalMemory": total, "availableMemory": available, "memoryReserve": memoryReserveMiB(total), "memoryTiers": serverMemoryTiers(safeMemory), "recommendedPlayers": recommendedPlayers(), "safeMemory": safeMemory, "recommendedMemory": recommendedServerMemory(total, available)})
+			manualMemory := manualServerMemoryLimit(total, available)
+			writeJSON(w, map[string]any{"servers": list, "ips": localIPs(), "os": runtime.GOOS, "cores": runtime.NumCPU(), "totalMemory": total, "availableMemory": available, "memoryReserve": memoryReserveMiB(total), "memoryTiers": serverMemoryTiers(manualMemory), "recommendedPlayers": recommendedPlayers(), "safeMemory": safeMemory, "recommendedMemory": recommendedServerMemory(total, available)})
 			return
 		}
 		if r.Method != "POST" {
@@ -686,7 +688,7 @@ func (l *logWriter) Write(data []byte) (int, error) {
 	return len(data), nil
 }
 func (m *manager) start(p Profile, game string) error {
-	if err := validateServerMemory(p.Memory); err != nil {
+	if err := validateServerMemory(p.Memory, p.MemoryOverride); err != nil {
 		return err
 	}
 	for id, active := range m.running {

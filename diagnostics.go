@@ -81,10 +81,13 @@ func (m *manager) preflight(p Profile, game string) preflightReport {
 		}
 	}
 
-	if err := validateServerMemory(p.Memory); err != nil {
+	if err := validateServerMemory(p.Memory, p.MemoryOverride); err != nil {
 		add("memory", "error", err.Error(), "Diminua o limite em Mundo, ou feche outros programas.")
 	} else {
 		add("memory", "ok", fmt.Sprintf("Limite de RAM: %d MiB.", p.Memory), "")
+	}
+	if total, available := memoryMiB(); p.MemoryOverride && p.Memory > safeServerMemoryLimit(total, available) {
+		add("memory", "warn", "Uso avançado de RAM confirmado.", "O servidor pode perder estabilidade se outros programas voltarem a usar memória.")
 	}
 	if p.Engine != "bedrock" {
 		_, available := memoryMiB()
