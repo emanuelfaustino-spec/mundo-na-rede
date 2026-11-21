@@ -111,13 +111,3 @@ $("engines-prepare").addEventListener("click",async()=>{
     }
   }
 });
-
-setTimeout(async()=>{
-  const status=await refreshEngineLibrary();
-  if(!status)return;
-  const introKey="mundo-nexus-engine-library-intro";
-  if(missingEngines(status).length>0&&!localStorage.getItem(introKey)){
-    localStorage.setItem(introKey,"true");
-    if(!$("engines-dialog").open)$("engines-dialog").showModal();
-  }
-},250);
