@@ -41,7 +41,7 @@ func TestServerMemoryTiersAreHalfGiBSteps(t *testing.T) {
 }
 
 func TestManualMemoryLimitAllowsThreeGiBOnIdleEightGiBPC(t *testing.T) {
-	if got := manualServerMemoryLimit(8015, 3686); got < 3072 {
+	if got := manualServerMemoryLimit(8015, 2450); got < 3072 {
 		t.Fatalf("limite manual %d não permite 3 GiB", got)
 	}
 }

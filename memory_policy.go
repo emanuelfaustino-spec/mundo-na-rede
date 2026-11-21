@@ -33,13 +33,16 @@ func serverMemoryTiers(safe int) []int {
 }
 
 // manualServerMemoryLimit is a deliberately higher ceiling for a host that is
-// otherwise idle. It still leaves 512 MiB for Windows and never exceeds 75% of
-// installed RAM. Reaching this range requires a visible acknowledgement in UI.
+// otherwise idle.  It is based on installed RAM rather than the momentary
+// "free" counter: Windows can reclaim cache and a host may intentionally give
+// the server more memory after closing other apps.  This is never the default;
+// reaching it requires a visible acknowledgement in the UI.  Leave at least
+// 1 GiB (and never allow more than 75% of installed RAM) for Windows.
 func manualServerMemoryLimit(total, available int) int {
-	if total <= 0 || available <= 0 {
+	if total <= 0 {
 		return 0
 	}
-	limit := min(available-512, total*75/100, 32768)
+	limit := min(total-1024, total*75/100, 32768)
 	if limit < 512 {
 		return 0
 	}
@@ -66,7 +69,7 @@ func validateServerMemory(requested int, override bool) error {
 			return fmt.Errorf("limite acima do recomendado: confirme o uso avançado de RAM ou escolha até %d MiB", safe/512*512)
 		}
 		if requested > limit {
-			return fmt.Errorf("limite de RAM acima do disponível agora: escolha até %d MiB ou libere memória", limit/512*512)
+			return fmt.Errorf("limite avançado de RAM acima do permitido: escolha até %d MiB", limit/512*512)
 		}
 	}
 	if requested < 512 {

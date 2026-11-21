@@ -93,9 +93,10 @@ function configureMemoryPicker(inputID, outputID, helpID, overrideID, requested,
   if (help && host?.availableMemory) {
     const reserve = Number(host.memoryReserve || 0);
     const maxTier = tiers[tiers.length - 1];
+    const recommended = closestMemoryTier(host.recommendedMemory || host.safeMemory || maxTier, tiers);
     help.textContent = formatMemoryTier(host.availableMemory) + " livres agora · " +
       (reserve ? formatMemoryTier(reserve) + " protegidos para o PC · " : "") +
-      "recomendado até " + formatMemoryTier(host.safeMemory || maxTier) + " · até " + formatMemoryTier(maxTier) + " com uso avançado.";
+      "recomendado até " + formatMemoryTier(recommended) + " · até " + formatMemoryTier(maxTier) + " com uso avançado.";
   }
 }
 const worldTemplates = {
