@@ -1,6 +1,6 @@
 # Política de Privacidade — Mundo Nexus
 
-Última atualização: 20 de novembro de 2026.
+Última atualização: 21 de novembro de 2026.
 
 ## Dados locais
 
@@ -22,6 +22,8 @@ Na integração com Google Drive, a autorização é feita pelo fluxo OAuth do G
 ## Rede do jogo
 
 Quando um mundo é iniciado, o dispositivo do anfitrião aceita conexões de jogadores na rede escolhida pelo anfitrião. O endereço de jogo é mostrado localmente no painel. O Mundo Nexus não oferece, por si só, um serviço intermediário de hospedagem, túnel ou coleta dos dados dos jogadores.
+
+O aplicativo pode solicitar autorização administrativa do Windows para criar ou remover regras específicas de firewall nas portas de jogo do servidor escolhido. Essas alterações exigem a confirmação do usuário. O Mundo Nexus não abre o painel administrativo à internet e não modifica automaticamente o roteador ou as condições de conexão fornecidas pela operadora.
 
 ## Controle do usuário
 
